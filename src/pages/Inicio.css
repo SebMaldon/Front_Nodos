@@ -1,0 +1,330 @@
+/* Variables de color */
+:root {
+    --imss-green: #007e47; /* Pantone 561 C al 100% */
+    --imss-green-light: #e6f2ec;
+    --imss-white: #ffffff;
+    --imss-gray: #f5f5f5;
+    --imss-dark: #333333;
+}
+
+/* Estilos generales */
+.imss-container {
+    font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    max-width: 100%;
+    margin: 0;
+    color: var(--imss-dark);
+}
+
+/* Hero Banner */
+.imss-hero {
+    background: linear-gradient(rgba(0, 126, 71, 0.9), rgba(0, 126, 71, 0.95)), url('');
+    background-size: cover;
+    background-position: center;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--imss-white);
+    position: relative;
+}
+
+.hero-overlay {
+    padding: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo-imss {
+    height: 80px;
+    margin-bottom: 30px;
+}
+
+.hero-content h1 {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.hero-content p {
+    font-size: 1.5rem;
+    margin-bottom: 40px;
+    font-weight: 300;
+}
+
+/* Botones */
+button {
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    border: none;
+}
+
+.btn-light {
+    background-color: var(--imss-white);
+    color: var(--imss-green);
+    margin-right: 15px;
+}
+
+    .btn-light:hover {
+        background-color: #f0f0f0;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+.btn-outline-light {
+    background-color: transparent;
+    color: var(--imss-white);
+    border: 2px solid var(--imss-white);
+}
+
+    .btn-outline-light:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+.btn-primary {
+    background-color: var(--imss-green);
+    color: var(--imss-white);
+    padding: 12px 40px;
+}
+
+    .btn-primary:hover {
+        background-color: #006538;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+/* Secciones comunes */
+.section-title {
+    color: var(--imss-green);
+    font-size: 2.2rem;
+    text-align: center;
+    margin-bottom: 50px;
+    position: relative;
+    font-weight: 700;
+}
+
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 100px;
+        height: 4px;
+        background: var(--imss-green);
+        margin: 15px auto 0;
+    }
+
+/* Servicios */
+.services-section {
+    padding: 80px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+    margin-top: 30px;
+}
+
+.service-card {
+    cursor: pointer;
+    background: var(--imss-white);
+    border-radius: 15px;
+    padding: 40px 25px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 126, 71, 0.1);
+    transition: all 0.3s ease;
+    border-top: 5px solid var(--imss-green);
+}
+
+    .service-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0, 126, 71, 0.2);
+    }
+
+    .service-card img {
+        width: 90px;
+        height: 90px;
+        margin-bottom: 25px;
+    }
+
+    .service-card h3 {
+        color: var(--imss-green);
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+    }
+
+    .service-card p {
+        line-height: 1.6;
+        color: #555;
+    }
+
+/* Campañas */
+.campaign-section {
+    background: url('https://www.imss.gob.mx/sites/all/statics/img/banner-campanas.jpg') center/cover;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+    .campaign-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 126, 71, 0.85);
+    }
+
+.campaign-content {
+    position: relative;
+    z-index: 2;
+    color: white;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 100%;
+}
+
+    .campaign-content h2 {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+
+    .campaign-content p {
+        font-size: 1.3rem;
+        margin-bottom: 30px;
+        max-width: 600px;
+    }
+
+/* Accesos rápidos */
+.quick-links {
+    padding: 80px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.quick-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--imss-green);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    padding: 30px 15px;
+    background: var(--imss-green-light);
+    border-radius: 10px;
+}
+
+    .quick-link:hover {
+        transform: translateY(-5px);
+        background: var(--imss-white);
+        box-shadow: 0 10px 20px rgba(0, 126, 71, 0.1);
+    }
+
+    .quick-link img {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 20px;
+    }
+
+    .quick-link span {
+        display: block;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+/* Footer */
+.imss-footer {
+    background-color: var(--imss-green);
+    color: var(--imss-white);
+    padding: 50px 20px 30px;
+    text-align: center;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-logo {
+    height: 70px;
+    margin-bottom: 30px;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+    .footer-links a {
+        color: var(--imss-white);
+        text-decoration: none;
+        transition: opacity 0.3s;
+    }
+
+        .footer-links a:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .imss-hero {
+        height: 400px;
+    }
+
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+
+    .hero-content p {
+        font-size: 1.2rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .btn-light, .btn-outline-light {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .services-grid, .links-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+    }
+
+    .campaign-content h2 {
+        font-size: 2rem;
+    }
+
+    .campaign-content p {
+        font-size: 1.1rem;
+    }
+}

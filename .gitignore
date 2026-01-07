@@ -1,0 +1,126 @@
+# ----------------------------------------------------------------------
+# Dependencies
+# ----------------------------------------------------------------------
+node_modules/
+.pnp
+.pnp.js
+
+# ----------------------------------------------------------------------
+# Build Output & Framework Extras
+# ----------------------------------------------------------------------
+dist/
+dist-ssr/
+build/
+out/
+coverage/
+*.tfstate
+*.tfstate.backup
+
+# ----------------------------------------------------------------------
+# Visual Studio & .NET
+# ----------------------------------------------------------------------
+.vs/
+bin/
+obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.pdb
+*.cache
+*_i.c
+*_p.c
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.err
+*.scc
+vssver.scc
+
+# ----------------------------------------------------------------------
+# IDE & Editor Configuration
+# ----------------------------------------------------------------------
+# VS Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.code-workspace
+
+# JetBrains / IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.metadata/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+# ----------------------------------------------------------------------
+# Environment Variables & Secrets
+# ----------------------------------------------------------------------
+# Dotenv
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Secrets
+*.pem
+*.key
+*.cert
+config/secrets.yml
+
+# ----------------------------------------------------------------------
+# Logs & Databases
+# ----------------------------------------------------------------------
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+debug.log
+
+# ----------------------------------------------------------------------
+# OS System Files
+# ----------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ----------------------------------------------------------------------
+# Large/Binary Files (Examples - add specific files if found >50MB)
+# ----------------------------------------------------------------------
+# *.mp4
+# *.mov
+# *.zip
+# *.tar.gz
+# *.rar
