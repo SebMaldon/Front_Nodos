@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'; // Importar las funciones useState y useEffect
 import axios from 'axios'; // Importar axios para realizar peticiones HTTP
 import { Button, Tooltip, TextField, ListItemText, ListItem, List, Select, MenuItem } from '@mui/material';
+import UnidadesModal from './UnidadesModal';
 
 const NodeFrom = ({ onAddNodo }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,24 +37,25 @@ const NodeFrom = ({ onAddNodo }) => {
     const [observacionDestino, setObservacionDestino] = useState(''); // 'mantenimiento', 'otro', 'ambos'
     const [observacionEditada, setObservacionEditada] = useState(false);
     const [observacionAnterior, setObservacionAnterior] = useState('');
+    const [showUnidadesModal, setShowUnidadesModal] = useState(false);
+
+    const fetchUnidades = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/nodos/unidades'); // Hacer una petición GET a la API
+            setUnidades(response.data); // Almacenar las unidades en el estado
+        } catch (error) {
+            console.error('Error al obtener las unidades:', error);
+        }
+    };
 
     // Obtener las unidades al cargar el componente
     useEffect(() => {
-        const fetchUnidades = async () => {
-            try {
-                const response = await axios.get('http://localhost:5000/api/nodos/unidades'); // Hacer una petición GET a la API
-
-                setUnidades(response.data); // Almacenar las unidades en el estado
-            } catch (error) {
-                console.error('Error al obtener las unidades:', error);
-            }
-        };
 
         const fetchMateriales = async () => {
             try {
                 const response = await axios.get('http://localhost:5000/api/nodos/materiales'); // Hacer una petición GET a la API
 
-                setMateriales(response.data); // Almacenar los materiales en el estado
+                setMateriales(response.data.materiales || response.data); // Almacenar los materiales en el estado
             } catch (error) {
                 console.log('Error al obtener los materiales: ', error);
             }
@@ -360,24 +362,31 @@ const NodeFrom = ({ onAddNodo }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit}> {/* Agregar el manejador de envío del formulario */}
-            <h2>Registrar Nuevo Nodo</h2>
+        <>
+            <form onSubmit={handleSubmit}> {/* Agregar el manejador de envío del formulario */}
+                <h2>Registrar Nuevo Nodo</h2>
             {/* Campos del formulario */}
             <div>
                 <label>Unidad:</label>
-                <select
-                    name="Unidad" // Nombre del campo
-                    value={formData.Unidad} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    required // Campo requerido
-                >
-                    <option value="">Seleccione una unidad</option> {/* Opción por defecto */}
-                    {unidades.map((unidad) => ( // Mapear las unidades para mostrarlas en el select
-                        <option key={unidad.nombre} value={unidad.nombre}> {/* Opción de la unidad con su referencia */}
-                            {unidad.nombre} {/* Nombre de la unidad */}
-                        </option>
-                    ))}
-                </select>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <select
+                        name="Unidad" // Nombre del campo
+                        value={formData.Unidad} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        required // Campo requerido
+                        style={{ flexGrow: 1 }}
+                    >
+                        <option value="">Seleccione una unidad</option> {/* Opción por defecto */}
+                        {unidades.map((unidad) => ( // Mapear las unidades para mostrarlas en el select
+                            <option key={unidad.nombre} value={unidad.nombre}> {/* Opción de la unidad con su referencia */}
+                                {unidad.nombre} {/* Nombre de la unidad */}
+                            </option>
+                        ))}
+                    </select>
+                    <Button variant="outlined" size="small" onClick={() => setShowUnidadesModal(true)}>
+                        Gestionar
+                    </Button>
+                </div>
             </div>
             <div>
                 <label>Ubicación:</label>
@@ -500,10 +509,10 @@ const NodeFrom = ({ onAddNodo }) => {
                 />
             </div>
             <div>
-                <label style={{ alignContent: 'center', alignItems: 'center', display: 'flex', paddingLeft: '27%' }}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: '10px' }}>
                     Requiere mantenimiento
                     <input
-                        style={{ width: '10%', alignContent: 'center', alignItems: 'center', display: 'flex' }}
+                        style={{ width: '20px', height: '20px' }}
                         type="checkbox" // Tipo de campo
                         name="Atencion" // Nombre del campo
                         value={formData.Atencion} // Valor actual del checkbox
@@ -512,10 +521,10 @@ const NodeFrom = ({ onAddNodo }) => {
                 </label>
             </div>
             <div>
-                <label style={{ alignContent: 'center', alignItems: 'center', display: 'flex', paddingLeft: '22%' }}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: '10px' }}>
                     Requiere otro tipo de atención
                     <input
-                        style={{ width: '10%', alignContent: 'center', alignItems: 'center', display: 'flex' }}
+                        style={{ width: '20px', height: '20px' }}
                         type="checkbox" // Tipo de campo
                         name="OtraAtencion" // Nombre del campo
                         value={formData.OtraAtencion} // Valor actual del checkbox
@@ -608,7 +617,7 @@ const NodeFrom = ({ onAddNodo }) => {
                     <div
                         className="modal"
                         onClick={(e) => e.stopPropagation()}
-                        style={{ width: '500px', padding: '20px' }}
+                        style={{ width: '100%', maxWidth: '500px', padding: '20px' }}
                     >
                         <h3>¿A qué tipo de atención corresponde esta observación?</h3>
                         <p>{observacionesUsuario}</p>
@@ -676,7 +685,7 @@ const NodeFrom = ({ onAddNodo }) => {
                                 placeholder="Ingrese las observaciones del cambio..."
                                 value={observacionesUsuario}
                                 onChange={(e) => setObservacionesUsuario(e.target.value)}
-                                style={{ height: '128px', width: '600px', resize: 'none', borderRadius: '5px' }}
+                                style={{ height: '128px', width: '100%', resize: 'none', borderRadius: '5px' }}
                             />
                         </div>
                         <div>
@@ -733,7 +742,7 @@ const NodeFrom = ({ onAddNodo }) => {
                     <div
                         className="modal"
                         onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal cierre el overlay
-                        style={{ width: '500px', padding: '20px' }}
+                        style={{ width: '100%', maxWidth: '500px', padding: '20px' }}
                     > {/* Contenedor del modal */}
                         <h3>Agregar Materiales Necesarios</h3>
 
@@ -803,7 +812,14 @@ const NodeFrom = ({ onAddNodo }) => {
                     </div>
                 </div>
             )}
-        </form>
+            </form>
+
+            <UnidadesModal 
+                open={showUnidadesModal} 
+                onClose={() => setShowUnidadesModal(false)}
+                onUnidadesChange={fetchUnidades}
+            />
+        </>
     );
 };
 

@@ -1,5 +1,5 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
-/ /* Variables de color IMSS */
+/* Variables de color IMSS */
 :root {
     --imss-green: #007e47;
     --imss-green-light: #e6f2ec;
@@ -805,7 +805,44 @@ input, select {
 
 @media (max-width: 768px) {
     .image-grid-container {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+    
+    .content-container {
+        flex-direction: column;
+    }
+    
+    .form-container, .table-container {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .modal {
+        width: 95%;
+        min-width: unset;
+        padding: 15px;
+    }
+
+    .modal form {
+        grid-template-columns: 1fr;
+    }
+    
+    .acciones-globales {
+        flex-wrap: wrap;
+    }
+
+    .content-Materials {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .image-grid {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    }
+    
+    .hide-on-mobile {
+        display: none !important;
     }
 }
 

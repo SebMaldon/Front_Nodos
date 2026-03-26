@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Button, Tooltip, TextField, ListItemText, ListItem, List, Typography, TablePagination } from '@mui/material';
 import axios from 'axios';
 
-const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función para obtenerlos
+const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, rowsPerPageApp, setRowsPerPageApp }) => { // Recibe los nodos y la función para obtenerlos
+    const [pageNode, setPageNode] = useState(0); 
+    const [rowsPerPageNode, setRowsPerPageNode] = useState(10); 
     const [selectedRowId, setSelectedRowId] = useState(null); // Estado para la fila seleccionada
     const [hoveredRow, setHoveredRow] = useState(null);
     const [showMaterialesModal, setShowMaterialesModal] = useState(false); // Estado para mostrar el modal de materiales
@@ -61,10 +63,21 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
         (pagination.page + 1) * pagination.rowsPerPage
     );
 
+    // Filtros vacios check
+    const filtrosEstanVacios = () => Object.values(filtros).every((filtro) => filtro === '');
+
     // Obtener los nodos al cargar el componente o cuando cambien los filtros
     useEffect(() => {
-        fetchNewNodos(); // Llama a fetchNewNodos cuando cambien los filtros
-    }, [filtros]); // Dependencia: filtros
+        setPageNode(0); // Reiniciar pagina de los filtros al modificar un filtro
+        fetchNewNodos(); 
+    }, [filtros]); 
+
+    // Re-fetch cuando cambiamos la pagina o el limite (solo si hay filtros activos, de lo contrario App.jsx se encarga)
+    useEffect(() => {
+        if (!filtrosEstanVacios()) {
+            fetchNewNodos();
+        }
+    }, [pageNode, rowsPerPageNode]);
 
     // Función para manejar cambios en los filtros
     const handleFiltroChange = (e) => {
@@ -74,13 +87,12 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
 
     // Función para hacer la nueva consulta GET y actualizar el estado
     const fetchNewNodos = async () => {
-        // Si todos los filtros están vacíos, no hacer la consulta
-        if (Object.values(filtros).every((filtro) => filtro === '')) {
-            fetchNodos(); // Actualiza los nodos sin filtros
-            setFilteredNodos([]); // Resetear filteredNodos
-            setTotalRegistros(0); // Almacenar el total de registros en el estado
-            setTotalFaltantes(0); // Almacenar el total de nodos faltantes en el estado
-            setTotalAtendidos(0);// Almacenar el total de nodos atendidos en el estado
+        // Si todos los filtros están vacíos, no hacer la consulta local
+        if (filtrosEstanVacios()) {
+            // App.jsx controls fetchNodos when filters are empty
+            setFilteredNodos([]);
+            setTotalFaltantes(0); 
+            setTotalAtendidos(0);
             return;
         }
 
@@ -121,9 +133,9 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
             // Eliminar el campo "tipoAtencion" para no enviarlo a la API
             delete params.tipoAtencion;
 
-            // Hacer la solicitud a la API con los filtros modificados
+            // Hacer la solicitud a la API con los filtros modificados y paginación
             const response = await axios.get('http://localhost:5000/api/nodos', {
-                params, // Enviar los filtros modificados como parámetros de consulta
+                params: { ...params, page: pageNode + 1, limit: rowsPerPageNode },
             });
 
             setFilteredNodos(response.data.nodos); // Almacenar los datos filtrados en el estado
@@ -513,12 +525,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
 
     const datosAMostrar = Object.values(filtros).some((filtro) => filtro !== '') ? filteredNodos : nodos; // Si hay filtros, mostrar los nodos filtrados, de lo contrario mostrar todos los nodos
 
-    // Función para verificar si los filtros están vacíos
-    const filtrosEstanVacios = () => {
-        return (
-            filtros.unidad === ''
-        );
-    };
+    // Eliminado filtrosEstanVacios duplicado
 
     // Función para verificar si un campo (array) está vacío
     const EstaVacio = (dato) => {
@@ -679,7 +686,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
             </div>
 
             {/* Botones de Acción Globales */}
-            <div className="acciones-globales" style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+            <div className="acciones-globales" style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 <Button
                     onClick={() => {
                         const node = nodos.find(n => n.Id === selectedRowId);
@@ -721,14 +728,15 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
 
             {/* Etiqueta con el total de registros (solo si los filtros no están vacíos) */}
             {!filtrosEstanVacios() && (
-                <div style={{ marginTop: '10px', fontWeight: 'bold' }}>
+                <div style={{ marginTop: '10px', fontWeight: 'bold', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                     <label>Total de registros: {totalRegistros}</label>
-                    <label style={{ marginLeft: '20px' }}> Nodos faltantes:{totalFaltantes || ' 0'} </label>
-                    <label style={{ marginLeft: '20px' }}> Nodos atendidos:{totalAtendidos || ' 0'} </label>
+                    <label> Nodos faltantes:{totalFaltantes || ' 0'} </label>
+                    <label> Nodos atendidos:{totalAtendidos || ' 0'} </label>
                 </div>
 
             )}
 
+            <div style={{ overflowX: 'auto', width: '100%' }}>
             <table> {/* Tabla para mostrar los nodos */}
                 <thead>
                     <tr> {/* Encabezados de la tabla */}
@@ -798,6 +806,30 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                     })}
                 </tbody>
             </table>
+            </div>
+
+            <TablePagination
+                component="div"
+                count={filtrosEstanVacios() ? totalRegistrosApp : totalRegistros}
+                page={filtrosEstanVacios() ? pageApp : pageNode}
+                onPageChange={(event, newPage) => {
+                    if (filtrosEstanVacios()) setPageApp(newPage);
+                    else setPageNode(newPage);
+                }}
+                rowsPerPage={filtrosEstanVacios() ? rowsPerPageApp : rowsPerPageNode}
+                rowsPerPageOptions={[5, 10, 25, 50]}
+                onRowsPerPageChange={(event) => {
+                    const newRows = parseInt(event.target.value, 10);
+                    if (filtrosEstanVacios()) {
+                        setRowsPerPageApp(newRows);
+                        setPageApp(0);
+                    } else {
+                        setRowsPerPageNode(newRows);
+                        setPageNode(0);
+                    }
+                }}
+                labelRowsPerPage="Nodos por página"
+            />
 
             {/* Modal para quitar la atención del mantenimiento */}
             {selectedAtencionNodo && (
@@ -819,6 +851,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                         )}
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedAtencionNodo.mantenimiento) && (
+                            <div style={{ overflowX: 'auto', width: '100%' }}>
                             <table>
                                 <thead>
                                     <th>Fecha de registro</th>
@@ -833,6 +866,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)}
                         <div> {/* Contenedor de las imágenes */}
                             <br />
@@ -904,6 +938,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                         )}
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedSinAtencionNodo.mantenimiento) && (
+                            <div style={{ overflowX: 'auto', width: '100%' }}>
                             <table>
                                 <thead>
                                     <th>Fecha de registro</th>
@@ -918,6 +953,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)}
                         <div> {/* Contenedor de las imágenes */}
                             <br />
@@ -987,6 +1023,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                         )}
                         {/* Tabla con los registros de otras atenciones que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedOtherAtencionNodo.otrasAtenciones) && (
+                            <div style={{ overflowX: 'auto', width: '100%' }}>
                             <table>
                                 <thead>
                                     <th>Fecha de registro</th>
@@ -1001,6 +1038,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)}
                         <div> {/* Contenedor de las imágenes */}
                             <br />
@@ -1072,6 +1110,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                         )}
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedSinOtherAtencionNodo.otrasAtenciones) && (
+                            <div style={{ overflowX: 'auto', width: '100%' }}>
                             <table>
                                 <thead>
                                     <th>Fecha de registro</th>
@@ -1086,6 +1125,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)} {/* Coloca un mensaje en caso de estar sin registros */}
                         <div> {/* Contenedor de las imágenes */}
                             <br />
@@ -1180,6 +1220,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                                 {!EstaVacio(selectedNodo.materiales) && (
                                     <div>
                                         <strong>Materiales necesarios:</strong>
+                                        <div style={{ overflowX: 'auto', width: '100%' }}>
                                         <table>
                                             <thead>
                                                 <th>Material</th>
@@ -1194,12 +1235,14 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                                                 ))}
                                             </tbody>
                                         </table>
+                                        </div>
                                     </div>
                                 ) || (<p style={{ color: 'grey' }}>No hay materiales necesarios</p>)} {/* Coloca un mensaje en caso de estar sin materiales utilizados */}
 
                                 {!EstaVacio(selectedNodo.materiales) && (
                                     <div>
                                         <strong>Materiales utilizados:</strong>
+                                        <div style={{ overflowX: 'auto', width: '100%' }}>
                                         <table>
                                             <thead>
                                                 <th>Material</th>
@@ -1214,6 +1257,7 @@ const NodeTable = ({ nodos, fetchNodos }) => { // Recibe los nodos y la función
                                                 ))}
                                             </tbody>
                                         </table>
+                                        </div>
                                     </div>
                                 ) || (<p style={{ color: 'grey' }}>No hay materiales Utilizados</p>)} {/* Coloca un mensaje en caso de estar sin materiales utilizados */}
                             </div>

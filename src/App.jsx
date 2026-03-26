@@ -12,20 +12,27 @@ function App() {
     const [nodos, setNodos] = useState([]); // Estado para almacenar los nodos
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    const [page, setPage] = useState(0); // Estado para la página actual
+    const [rowsPerPage, setRowsPerPage] = useState(10); // Estado para límite de registros
+    const [totalRegistrosApp, setTotalRegistrosApp] = useState(0);
+
     // Función para obtener los nodos desde el backend
-    const fetchNodos = async () => {
+    const fetchNodos = async (p = page, l = rowsPerPage) => {
         try {
-            const response = await axios.get('http://localhost:5000/api/nodos'); // Hacer una petición GET a la API
+            const response = await axios.get('http://localhost:5000/api/nodos', {
+                params: { page: p + 1, limit: l } 
+            }); 
             setNodos(response.data.nodos); // Almacenar los nodos en el estado
+            setTotalRegistrosApp(response.data.total || 0);
         } catch (error) {
             console.error('Error al obtener los nodos:', error);
         }
     };
 
-    // Cargar los nodos al iniciar la aplicación
+    // Cargar los nodos al iniciar y la paginación cambie
     useEffect(() => {
-        fetchNodos(); // Llamar a la función para obtener los nodos
-    }, []);
+        fetchNodos(page, rowsPerPage); 
+    }, [page, rowsPerPage]);
 
     // Función para agregar un nuevo nodo
     const handleAddNodo = async () => {
@@ -102,7 +109,15 @@ function App() {
                                             <NodeForm onAddNodo={handleAddNodo} />
                                         </div>
                                         <div className="table-container">
-                                            <NodeTable nodos={nodos} fetchNodos={fetchNodos} />
+                                            <NodeTable 
+                                                nodos={nodos} 
+                                                fetchNodos={fetchNodos} 
+                                                totalRegistrosApp={totalRegistrosApp} 
+                                                pageApp={page} 
+                                                setPageApp={setPage} 
+                                                rowsPerPageApp={rowsPerPage} 
+                                                setRowsPerPageApp={setRowsPerPage} 
+                                            />
                                         </div>
                                     </div>
                                 </div>

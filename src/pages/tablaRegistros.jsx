@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs';
-import { Button, Tooltip } from '@mui/material';
+import { Button, Tooltip, TablePagination } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -35,6 +35,8 @@ const tablaRegistros = () => {
         conObservaciones: '',
         atendido: '',
     });
+    const [page, setPage] = useState(0); // Estado para la página actual
+    const [rowsPerPage, setRowsPerPage] = useState(10); // Estado para la cantidad de registros por página
 
     // Función para abrir el modal con los detalles del nodo
     const handleDetailsClick = async (nodoData) => {
@@ -93,7 +95,7 @@ const tablaRegistros = () => {
 
             // Hacer la solicitud a la API con los filtros modificados
             const response = await axios.get('http://localhost:5000/api/nodos', {
-                params, // Enviar los filtros modificados como parámetros de consulta
+                params: { ...params, page: page + 1, limit: rowsPerPage }, // Enviar los filtros modificados como parámetros de consulta
             });
 
             setFilteredNodos(response.data.nodos); // Almacenar los datos filtrados en el estado
@@ -498,7 +500,7 @@ const tablaRegistros = () => {
     // Cargar los registros al iniciar la página
     useEffect(() => {
         fetchNodos();
-    }, [filtros]);
+    }, [filtros, page, rowsPerPage]);
 
     const handleFiltroChange = (e) => {
         const { name, value } = e.target; // Extrae el nombre y el valor del campo
@@ -822,7 +824,7 @@ const tablaRegistros = () => {
                 </div>
             )}
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
                 {/* Botón a la izquierda */}
                 {!EstaVacio(materiales) && (
                     <div>
@@ -831,21 +833,23 @@ const tablaRegistros = () => {
                                 variant="contained"
                                 onClick={() => setShowMaterials(!showMaterials)} // Mostrar los materiales en la modal
                             >
-                                Mostrar materiales
+                                <i className="fas fa-boxes" style={{ marginRight: '5px' }}></i>
+                                <span className="hide-on-mobile">Mostrar materiales</span>
                             </Button>
                         </Tooltip>
                     </div>
                 )}
 
                 {/* Contenedor de botones alineados a la derecha */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
                     {!filtrosEstanVacios() && (
                         <Tooltip title="Mostrar todas las imágenes de los MDF e IDF de la unidad">
                             <Button
                                 variant="contained"
                                 onClick={handleImagenesUnidad} // Mostrar las imágenes en la modal
                             >
-                                imágenes (MDF - IDF)
+                                <i className="fas fa-images" style={{ marginRight: '5px' }}></i>
+                                <span className="hide-on-mobile">imágenes (MDF - IDF)</span>
                             </Button>
                         </Tooltip>
                     )}
@@ -855,7 +859,8 @@ const tablaRegistros = () => {
                                 variant="contained"
                                 onClick={handleImagenesUnidadNodos} // Mostrar las imágenes en la modal
                             >
-                                imágenes (nodos)
+                                <i className="fas fa-network-wired" style={{ marginRight: '5px' }}></i>
+                                <span className="hide-on-mobile">imágenes (nodos)</span>
                             </Button>
                         </Tooltip>
                     )}
@@ -867,13 +872,15 @@ const tablaRegistros = () => {
                                 onClick={exportarAExcel} // Llama a la función para exportar a Excel
                                 disabled={EstaVacio(filteredNodos)}
                             >
-                                Exportar Nodos
+                                <i className="fas fa-file-excel" style={{ marginRight: '5px' }}></i>
+                                <span className="hide-on-mobile">Exportar Nodos</span>
                             </Button>
                         </Tooltip>
                     )}
                 </div>
             </div>
 
+            <div style={{ overflowX: 'auto', width: '100%' }}>
             <table>
                 <thead>
                     <tr>
@@ -949,6 +956,21 @@ const tablaRegistros = () => {
                     })}
                 </tbody>
             </table>
+            </div>
+
+            <TablePagination
+                component="div"
+                count={totalRegistros}
+                page={page}
+                onPageChange={(event, newPage) => setPage(newPage)}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(event) => {
+                    setRowsPerPage(parseInt(event.target.value, 10));
+                    setPage(0);
+                }}
+                rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                labelRowsPerPage="Nodos por página"
+            />
 
             {/* Modal para mostrar historial de mantenimientos para un nodo que no requiere mantenimiento */}
             {selectedSinAtencionNodo && (

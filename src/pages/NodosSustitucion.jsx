@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Tooltip } from '@mui/material';
+import { Button, Tooltip, TablePagination } from '@mui/material';
 import axios from 'axios';
 
 const NodosSustitucion = () => {
@@ -29,10 +29,18 @@ const NodosSustitucion = () => {
         atendido: '',
     });
 
-    // Cargar los registros al iniciar la página
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    // Resetear paginación cuando el filtro cambie
+    useEffect(() => {
+        setPage(0);
+    }, [filtros]);
+
+    // Cargar los registros al cambiar filtros o paginación
     useEffect(() => {
         fetchNodos();
-    }, [filtros]);
+    }, [filtros, page, rowsPerPage]);
 
     // Función para abrir el modal con los detalles del nodo
     const handleDetailsClick = async (nodoData) => {
@@ -91,7 +99,7 @@ const NodosSustitucion = () => {
 
             // Hacer la solicitud a la API con los filtros modificados
             const response = await axios.get('http://localhost:5000/api/nodos/candidatos', {
-                params, // Enviar los filtros modificados como parámetros de consulta
+                params: { ...params, page: page + 1, limit: rowsPerPage },
             });
 
             setFilteredNodos(response.data.nodos); // Almacenar los datos filtrados en el estado
@@ -208,15 +216,16 @@ const NodosSustitucion = () => {
                 </label>
             </div>
 
-            <div style={{ marginTop: '10px', fontWeight: 'bold' }}>
-                <label>Total de registros: {totalRegistros}</label> {/* Campo con valor cambiante dependiendo de los filtros y sus registros obtenidos */}
-                <label style={{ marginLeft: '20px' }}> Requieren mantenimiento: {totalAtencion || ' 0'} </label> {/* Campo con valor cambiante dependiendo de los filtros y sus registros obtenidos */}
-                <label style={{ marginLeft: '20px' }}> Requieren otro tipo de atención: {totalOtraAtencion || ' 0'} </label> {/* Campo con valor cambiante dependiendo de los filtros y sus registros obtenidos */}
-                <label style={{ marginLeft: '20px' }}> Nodos atendidos en mantenimiento: {totalAtendidos || ' 0'} </label> {/* Campo con valor cambiante dependiendo de los filtros y sus registros obtenidos */}
-                <label style={{ marginLeft: '20px' }}> Nodos atendidos de otro tipo de atención: {totalOtroAtendido || ' 0'} </label> {/* Campo con valor cambiante dependiendo de los filtros y sus registros obtenidos */}
-                <label style={{ marginLeft: '20px' }}> Total faltantes: {totalFaltantes || ' 0'} </label> {/* Campo con valor cambiante dependiendo de los filtros y sus registros obtenidos */}
+            <div style={{ marginTop: '10px', fontWeight: 'bold', display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+                <label>Total de registros: {totalRegistros}</label>
+                <label> Requieren mantenimiento: {totalAtencion || ' 0'} </label>
+                <label> Requieren otro tipo de atención: {totalOtraAtencion || ' 0'} </label>
+                <label> Nodos atendidos en mantenimiento: {totalAtendidos || ' 0'} </label>
+                <label> Nodos atendidos de otro tipo de atención: {totalOtroAtendido || ' 0'} </label>
+                <label> Total faltantes: {totalFaltantes || ' 0'} </label>
             </div>
 
+            <div style={{ overflowX: 'auto', width: '100%' }}>
             <table>
                 <thead>
                     <tr>
@@ -266,6 +275,21 @@ const NodosSustitucion = () => {
                     ))}
                 </tbody>
             </table>
+            </div>
+
+            <TablePagination
+                component="div"
+                count={totalRegistros}
+                page={page}
+                onPageChange={(event, newPage) => setPage(newPage)}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[5, 10, 25, 50]}
+                onRowsPerPageChange={(event) => {
+                    setRowsPerPage(parseInt(event.target.value, 10));
+                    setPage(0);
+                }}
+                labelRowsPerPage="Nodos por página"
+            />
 
             {/* Modal para mostrar historial de mantenimientos para un nodo que no requiere mantenimiento */}
             {selectedSinAtencionNodo && (
@@ -287,6 +311,7 @@ const NodosSustitucion = () => {
                         )}
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedSinAtencionNodo.mantenimiento) && (
+                            <div style={{ overflowX: 'auto', width: '100%' }}>
                             <table>
                                 <thead>
                                     <th>Fecha de registro</th>
@@ -301,6 +326,7 @@ const NodosSustitucion = () => {
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)} {/* Coloca un mensaje en caso de estar sin registros */}
                         <div> {/* Contenedor de las imágenes */}
                             <br />
@@ -370,6 +396,7 @@ const NodosSustitucion = () => {
                         )}
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedSinOtherAtencionNodo.mantenimiento) && (
+                            <div style={{ overflowX: 'auto', width: '100%' }}>
                             <table>
                                 <thead>
                                     <th>Fecha de registro</th>
@@ -384,6 +411,7 @@ const NodosSustitucion = () => {
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)}
                         <div> {/* Contenedor de las imágenes */}
                             <br />
@@ -495,6 +523,7 @@ const NodosSustitucion = () => {
                             {!EstaVacio(selectedNodo.materiales) && (
                                 <div>
                                     <strong>Materiales necesarios:</strong>
+                                    <div style={{ overflowX: 'auto', width: '100%' }}>
                                     <table>
                                         <thead>
                                             <th>Material</th>
@@ -509,12 +538,14 @@ const NodosSustitucion = () => {
                                             ))}
                                         </tbody>
                                     </table>
+                                    </div>
                                 </div>
                             ) || (<p style={{ color: 'grey' }}>No hay materiales necesarios</p>)} {/* Coloca un mensaje en caso de estar sin materiales utilizados */}
 
                             {!EstaVacio(selectedNodo.materiales) && (
                                 <div>
                                     <strong>Materiales utilizados:</strong>
+                                    <div style={{ overflowX: 'auto', width: '100%' }}>
                                     <table>
                                         <thead>
                                             <th>Material</th>
@@ -529,6 +560,7 @@ const NodosSustitucion = () => {
                                             ))}
                                         </tbody>
                                     </table>
+                                    </div>
                                 </div>
                             ) || (<p style={{ color: 'grey' }}>No hay materiales Utilizados</p>)} {/* Coloca un mensaje en caso de estar sin materiales utilizados */}
                         </div>
