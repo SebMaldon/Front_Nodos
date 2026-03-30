@@ -22,6 +22,18 @@ const tablaRegistros = () => {
     const [selectedImagesUnidad, setSelectedImagesUnidad] = useState(null); // Estado para almacenar las imágenes de la unidad seleccionada
     const [selectedImagesUnidadNodos, setSelectedImagesUnidadNodos] = useState(null); // Estado para almacenar las imágenes de la consulta
     const [showMaterials, setShowMaterials] = useState(false); // Estado para mostrar el modal de materiales
+    const [showMdfIdfForm, setShowMdfIdfForm] = useState(false);
+    const [isEditingMdfIdf, setIsEditingMdfIdf] = useState(false);
+    const [fetchedUnitCodes, setFetchedUnitCodes] = useState([]);
+    const [fetchedUnitImages, setFetchedUnitImages] = useState([]);
+    const [mdfIdfFormData, setMdfIdfFormData] = useState({
+        isNew: 'Existente',
+        tipo: 'MDF',
+        unidadForm: '',
+        codigoMDFIDF: '',
+        nombre: '',
+        file: null
+    });
     const [filtros, setFiltros] = useState({ // Estado para los filtros
         atencion: '',
         unidad: '',
@@ -564,7 +576,7 @@ const tablaRegistros = () => {
         try {
             // Obtener las imágenes solventadas desde el backend
             const response = await axios.get(`http://localhost:5000/api/nodos/imagenes-nodos/${filtros.unidad}`);
-            
+
             const ImagenesNodos = response.data;
 
             // Actualizar el nodo con las imágenes solventadas
@@ -588,6 +600,108 @@ const tablaRegistros = () => {
             console.error('Error al obtener los datos:', error);
         }
     };
+
+    // === Lógica CRUD MDF e IDF ===
+    const handleCloseMdfIdfForm = () => {
+        setShowMdfIdfForm(false);
+        setIsEditingMdfIdf(false);
+        setMdfIdfFormData({ isNew: 'Existente', tipo: 'MDF', unidadForm: '', codigoMDFIDF: '', nombre: '', file: null });
+        setFetchedUnitCodes([]);
+        setFetchedUnitImages([]);
+    };
+
+    const handleFormUnidadChange = async (unidadRef) => {
+        setMdfIdfFormData(prev => ({ ...prev, unidadForm: unidadRef, codigoMDFIDF: '' }));
+        setFetchedUnitCodes([]);
+        setFetchedUnitImages([]);
+        if (!unidadRef) return;
+
+        try {
+            const response = await axios.get(`http://localhost:5000/api/nodos/mdf-idf-codigos/${unidadRef}`);
+            // The endpoint returns a plain array of strings like ["IDF_1174", "MDF_1174", ...]
+            const codigos = response.data || [];
+            setFetchedUnitCodes(codigos); // already a string[]
+            setFetchedUnitImages([]); // no image previews from this endpoint
+        } catch (error) {
+            console.error('Error al obtener códigos MDF/IDF:', error);
+            setFetchedUnitCodes([]);
+            setFetchedUnitImages([]);
+        }
+    };
+
+    const handleEditMdfIdfClick = (image) => {
+        setMdfIdfFormData({
+            id: image.Id,
+            isNew: 'Editando', // Solo para edición
+            tipo: image.Tipo || 'MDF',
+            unidadForm: image.ReferenciaUnidad || '',
+            codigoMDFIDF: image.CodigoMDFIDF || '',
+            nombre: image.Nombre || '',
+            file: null
+        });
+        setIsEditingMdfIdf(true);
+        setShowMdfIdfForm(true);
+        // Eliminado: setSelectedImage(null); para mantener la imagen grande visible mientras se edita
+    };
+
+    const handleDeleteMdfIdf = async (id) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return;
+        try {
+            await axios.delete(`http://localhost:5000/api/nodos/mdf-idf-imagenes/${id}`);
+            alert('Imagen eliminada con éxito');
+            setSelectedImage(null); // Cerrar imagen grande
+            handleImagenesUnidad(); // Recargar
+        } catch (error) {
+            console.error('Error al eliminar:', error);
+            alert('Hubo un error al eliminar la imagen');
+        }
+    };
+
+    const handleSubmitMdfIdf = async (e) => {
+        e.preventDefault();
+        try {
+            const formData = new FormData();
+            formData.append('Nombre', mdfIdfFormData.nombre);
+
+            if (isEditingMdfIdf) {
+                // Multer requiere NombreUnidad para la carpeta de destino
+                const referenciaUnidad = mdfIdfFormData.unidadForm || filtros.unidad;
+                const unidadObj = unidades.find(u => String(u.ref) === String(referenciaUnidad));
+                const nombreUnidad = unidadObj ? unidadObj.nombre : referenciaUnidad;
+                formData.append('NombreUnidad', nombreUnidad);
+                formData.append('ReferenciaUnidad', referenciaUnidad);
+                if (mdfIdfFormData.file) {
+                    formData.append('newImage', mdfIdfFormData.file);
+                }
+                await axios.put(`http://localhost:5000/api/nodos/mdf-idf-imagenes/${mdfIdfFormData.id}`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                alert('Imagen actualizada con éxito');
+            } else {
+                const referenciaUnidad = mdfIdfFormData.unidadForm || filtros.unidad;
+                const unidadObj = unidades.find(u => String(u.ref) === String(referenciaUnidad));
+                const nombreUnidad = unidadObj ? unidadObj.nombre : referenciaUnidad;
+                formData.append('NombreUnidad', nombreUnidad); // ⬅ requerido por Multer para la carpeta
+                formData.append('image', mdfIdfFormData.file);
+                formData.append('Tipo', mdfIdfFormData.tipo);
+                formData.append('ReferenciaUnidad', referenciaUnidad);
+                if (mdfIdfFormData.isNew === 'Existente') {
+                    formData.append('CodigoMDFIDF', mdfIdfFormData.codigoMDFIDF);
+                }
+
+                await axios.post(`http://localhost:5000/api/nodos/mdf-idf-imagenes`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                alert('Imagen agregada con éxito');
+            }
+            handleCloseMdfIdfForm();
+            handleImagenesUnidad(); // Recargar lista
+        } catch (error) {
+            console.error('Error al guardar:', error);
+            alert('Error al guardar la imagen');
+        }
+    };
+    // =============================
 
     return (
         <div>
@@ -768,7 +882,7 @@ const tablaRegistros = () => {
                     </label>
                 ))}
             </div>
-            
+
             {/* Lista de materiales utilizados y necesarios totales */}
             {showMaterials && (
                 <div
@@ -800,7 +914,7 @@ const tablaRegistros = () => {
                                 </tbody>
                             </table>
                         </div>
-                        <br/>
+                        <br />
                         <div>
                             <Tooltip title="Exportar toda la tabla de materiales a Excel">
                                 <Button
@@ -823,7 +937,7 @@ const tablaRegistros = () => {
                     </div>
                 </div>
             )}
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
                 {/* Botón a la izquierda */}
                 {!EstaVacio(materiales) && (
@@ -881,81 +995,81 @@ const tablaRegistros = () => {
             </div>
 
             <div style={{ overflowX: 'auto', width: '100%' }}>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Ubicación</th>
-                        <th>Unidad</th>
-                        <th>Categoría del cable</th>
-                        <th>Año de instalación</th>
-                        <th>Estado del cable</th>
-                        <th>Puerto</th>
-                        <th>Área</th>
-                        <th>Longitud</th>
-                        <th>IP del Switch</th>
-                        <th>Observaciones</th>
-                        <th>Faltantes</th>
-                        <th>M</th>
-                        <th>OA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredNodos.map((nodoData, index) => {
-                        // Determinar el color basado en si tiene imágenes y si la fila es par/impar
-                        const isEven = index % 2 === 0;
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ubicación</th>
+                            <th>Unidad</th>
+                            <th>Categoría del cable</th>
+                            <th>Año de instalación</th>
+                            <th>Estado del cable</th>
+                            <th>Puerto</th>
+                            <th>Área</th>
+                            <th>Longitud</th>
+                            <th>IP del Switch</th>
+                            <th>Observaciones</th>
+                            <th>Faltantes</th>
+                            <th>M</th>
+                            <th>OA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredNodos.map((nodoData, index) => {
+                            // Determinar el color basado en si tiene imágenes y si la fila es par/impar
+                            const isEven = index % 2 === 0;
 
-                        // Colores base (solo para nodos sin imágenes)
-                        const baseColor = nodoData.TieneImagenes ? '' :
-                            (isEven ? '#fb99a8' : '#f76d82');
+                            // Colores base (solo para nodos sin imágenes)
+                            const baseColor = nodoData.TieneImagenes ? '' :
+                                (isEven ? '#fb99a8' : '#f76d82');
 
-                        // Color hover (solo para nodos sin imágenes)
-                        const hoverColor = nodoData.TieneImagenes ? '' :
-                            (isEven ? '#ffdade' : '#ffc0cb');
+                            // Color hover (solo para nodos sin imágenes)
+                            const hoverColor = nodoData.TieneImagenes ? '' :
+                                (isEven ? '#ffdade' : '#ffc0cb');
 
-                        // Determinar el color actual
-                        const currentColor = (hoveredRow === index && !nodoData.TieneImagenes)
-                            ? hoverColor
-                            : baseColor;
+                            // Determinar el color actual
+                            const currentColor = (hoveredRow === index && !nodoData.TieneImagenes)
+                                ? hoverColor
+                                : baseColor;
 
-                        return (
-                            <tr
-                                key={index}
-                                style={{
-                                    backgroundColor: currentColor
-                                }}
-                                // Eventos para manejar el coloreado de la fila al sobreponer el puntero
-                                onMouseEnter={() => setHoveredRow(index)}
-                                onMouseLeave={() => setHoveredRow(null)}
-                            > {/* Clave única para cada fila */}
-                                <td
-                                    onClick={() => handleDetailsClick(nodoData)}
-                                    style={{ cursor: 'pointer' }}
-                                >{nodoData.Ubicacion}</td> {/* Muestra la ubicación del nodo */}
-                                <td>{nodoData.Unidad}</td> {/* Muestra la unidad del nodo */}
-                                <td>{nodoData.CategoriaCable}</td> {/* Muestra la categoría del cable */}
-                                <td>{nodoData.AnioInstalacion}</td> {/* Muestra el año de instalación */}
-                                <td>{nodoData.EstadoCable}</td> {/* Muestra el estado del cable */}
-                                <td>{nodoData.Puerto}</td> {/* Muestra el puerto */}
-                                <td>{nodoData.Area}</td> {/* Muestra el área */}
-                                <td>{nodoData.Longitud}</td> {/* Muestra la longitud del cable */}
-                                <td>{nodoData.IpSwitch}</td> {/* Muestra la IP del switch */}
-                                <td>{nodoData.Observaciones}</td> {/* Muestra las observaciones */}
-                                <td style={{ textAlign: 'center' }} >{nodoData.Nodos_faltantes ? nodoData.Nodos_faltantes : '0'}</td> {/* Muestra los nodos faltantes */}
-                                {/* Muestra el estado de atención del nodo con imagenes*/}
-                                <td onClick={() => handleAtencionClick(nodoData)}
-                                    style={{ cursor: 'pointer', textAlign: 'center' }}>
-                                    {nodoData.Atendido ? '✅' : ''}{nodoData.Atencion ? '⚠️' : ''} {/* Muestra un icono si requiere atención */}
-                                </td>
-                                {/* Muestra el estado de atención del nodo con imagenes*/}
-                                <td onClick={() => handleOtherAtencionClick(nodoData)}
-                                    style={{ cursor: 'pointer', textAlign: 'center' }}>
-                                    {nodoData.OtroAtendido ? '🟢' : ''}{nodoData.OtraAtencion ? '🔴' : ''} {/* Muestra un icono si requiere atención */}
-                                </td>
-                            </tr>
-                        )
-                    })}
-                </tbody>
-            </table>
+                            return (
+                                <tr
+                                    key={index}
+                                    style={{
+                                        backgroundColor: currentColor
+                                    }}
+                                    // Eventos para manejar el coloreado de la fila al sobreponer el puntero
+                                    onMouseEnter={() => setHoveredRow(index)}
+                                    onMouseLeave={() => setHoveredRow(null)}
+                                > {/* Clave única para cada fila */}
+                                    <td
+                                        onClick={() => handleDetailsClick(nodoData)}
+                                        style={{ cursor: 'pointer' }}
+                                    >{nodoData.Ubicacion}</td> {/* Muestra la ubicación del nodo */}
+                                    <td>{nodoData.Unidad}</td> {/* Muestra la unidad del nodo */}
+                                    <td>{nodoData.CategoriaCable}</td> {/* Muestra la categoría del cable */}
+                                    <td>{nodoData.AnioInstalacion}</td> {/* Muestra el año de instalación */}
+                                    <td>{nodoData.EstadoCable}</td> {/* Muestra el estado del cable */}
+                                    <td>{nodoData.Puerto}</td> {/* Muestra el puerto */}
+                                    <td>{nodoData.Area}</td> {/* Muestra el área */}
+                                    <td>{nodoData.Longitud}</td> {/* Muestra la longitud del cable */}
+                                    <td>{nodoData.IpSwitch}</td> {/* Muestra la IP del switch */}
+                                    <td>{nodoData.Observaciones}</td> {/* Muestra las observaciones */}
+                                    <td style={{ textAlign: 'center' }} >{nodoData.Nodos_faltantes ? nodoData.Nodos_faltantes : '0'}</td> {/* Muestra los nodos faltantes */}
+                                    {/* Muestra el estado de atención del nodo con imagenes*/}
+                                    <td onClick={() => handleAtencionClick(nodoData)}
+                                        style={{ cursor: 'pointer', textAlign: 'center' }}>
+                                        {nodoData.Atendido ? '✅' : ''}{nodoData.Atencion ? '⚠️' : ''} {/* Muestra un icono si requiere atención */}
+                                    </td>
+                                    {/* Muestra el estado de atención del nodo con imagenes*/}
+                                    <td onClick={() => handleOtherAtencionClick(nodoData)}
+                                        style={{ cursor: 'pointer', textAlign: 'center' }}>
+                                        {nodoData.OtroAtendido ? '🟢' : ''}{nodoData.OtraAtencion ? '🔴' : ''} {/* Muestra un icono si requiere atención */}
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </table>
             </div>
 
             <TablePagination
@@ -1295,7 +1409,19 @@ const tablaRegistros = () => {
             {selectedImagesUnidad && (
                 <div className="modal-overlay" onClick={() => setSelectedImagesUnidad(null)}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="image-modal-title">Imágenes de los MDF e IDF:</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                            <h3 className="image-modal-title" style={{ margin: 0 }}>Imágenes de los MDF e IDF:</h3>
+                            <Tooltip title="Añadir Imagen">
+                                <Button variant="contained" color="primary" onClick={() => {
+                                    setMdfIdfFormData(prev => ({ ...prev, unidadForm: filtros.unidad }));
+                                    handleFormUnidadChange(filtros.unidad);
+                                    setShowMdfIdfForm(true);
+                                }}>
+                                    <i className="fas fa-plus" style={{ marginRight: '5px' }}></i>
+                                    <span className="hide-on-mobile">Añadir Imagen</span>
+                                </Button>
+                            </Tooltip>
+                        </div>
 
                         {selectedImagesUnidad.MDF_IDF_Images.length > 0 ? (
                             <div className="image-grid-container">
@@ -1309,7 +1435,7 @@ const tablaRegistros = () => {
                                             src={'http://localhost:5000' + image.ImagenURL}
                                             alt={`Imagen ${index + 1}`}
                                             className="thumbnail-image"
-                                            onClick={() => handleImageClick(image.ImagenURL)}
+                                            onClick={() => setSelectedImage({ ...image, isMdfIdf: true })}
                                         />
                                     </div>
                                 ))}
@@ -1321,6 +1447,7 @@ const tablaRegistros = () => {
                 </div>
             )}
 
+
             {/* Modal para mostrar la imagen en grande */}
             {selectedImage && (
                 <div
@@ -1330,19 +1457,172 @@ const tablaRegistros = () => {
                     <div
                         className="modal"
                         onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal cierre el overlay
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                     > {/* Contenedor del modal */}
                         <img
-                            src={selectedImage} // URL de la imagen
+                            src={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL} // Soporta ambos formatos
                             alt="Imagen en grande" // Texto alternativo
-                            style={{ maxWidth: '75%', maxHeight: '75%' }} // Estilos
+                            style={{ maxWidth: '75%', maxHeight: '75%', objectFit: 'contain' }} // Estilos
                         />
                         <br />
-                        <br /><br />
-                        <a href={selectedImage} target="_blank" rel="noopener noreferrer">
-                            URL: {selectedImage}
+                        <a href={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL} target="_blank" rel="noopener noreferrer">
+                            URL: {typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL}
                         </a>
-                        <br /><br />
-                        <Button onClick={() => setSelectedImage(null)} variant="outlined">Cerrar</Button> {/* Botón para cerrar el modal */}
+
+                        {/* Botones adicionales solo si es imagen de MDF/IDF */}
+                        {typeof selectedImage === 'object' && selectedImage.isMdfIdf && (
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                                <Button
+                                    variant="contained"
+                                    color="warning"
+                                    onClick={() => handleEditMdfIdfClick(selectedImage)}
+                                >
+                                    <i className="fas fa-edit" style={{ marginRight: '5px' }}></i> Editar
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    color="error"
+                                    onClick={() => handleDeleteMdfIdf(selectedImage.Id)}
+                                >
+                                    <i className="fas fa-trash" style={{ marginRight: '5px' }}></i> Eliminar
+                                </Button>
+                            </div>
+                        )}
+                        <br />
+                        <Button onClick={() => setSelectedImage(null)} variant="outlined" style={{ marginTop: '15px' }}>Cerrar</Button> {/* Botón para cerrar el modal */}
+                    </div>
+                </div>
+            )}
+
+            {/* Modal del Formulario MDF / IDF */}
+            {showMdfIdfForm && (
+                <div className="modal-overlay" onClick={handleCloseMdfIdfForm}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <h3>{isEditingMdfIdf ? 'Editar Imagen' : 'Añadir Imagen MDF / IDF'}</h3>
+                        <form onSubmit={handleSubmitMdfIdf} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+
+                            {!isEditingMdfIdf && (
+                                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '20px', marginBottom: '10px' }}>
+                                    <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0 }}>
+                                        <input
+                                            type="radio"
+                                            name="isNew"
+                                            value="Nuevo"
+                                            checked={mdfIdfFormData.isNew === 'Nuevo'}
+                                            onChange={(e) => setMdfIdfFormData({ ...mdfIdfFormData, isNew: e.target.value })}
+                                            style={{ width: 'auto', height: 'auto', margin: 0 }}
+                                        /> <span style={{ margin: 0 }}>Nuevo Registro MDF/IDF</span>
+                                    </label>
+                                    <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0 }}>
+                                        <input
+                                            type="radio"
+                                            name="isNew"
+                                            value="Existente"
+                                            checked={mdfIdfFormData.isNew === 'Existente'}
+                                            onChange={(e) => setMdfIdfFormData({ ...mdfIdfFormData, isNew: e.target.value })}
+                                            style={{ width: 'auto', height: 'auto', margin: 0 }}
+                                        /> <span style={{ margin: 0 }}>Registro Existente</span>
+                                    </label>
+                                </div>
+                            )}
+
+                            {!isEditingMdfIdf && (
+                                <label>
+                                    Unidad:
+                                    <select
+                                        value={mdfIdfFormData.unidadForm}
+                                        onChange={(e) => handleFormUnidadChange(e.target.value)}
+                                        style={{ marginLeft: '10px', padding: '5px' }}
+                                        required
+                                    >
+                                        <option value="">Seleccione una unidad</option>
+                                        {unidades.map(u => (
+                                            <option key={u.ref} value={u.ref}>{u.nombre}</option>
+                                        ))}
+                                    </select>
+                                </label>
+                            )}
+
+                            {!isEditingMdfIdf && mdfIdfFormData.isNew === 'Nuevo' && (
+                                <label>
+                                    Tipo:
+                                    <select
+                                        value={mdfIdfFormData.tipo}
+                                        onChange={(e) => setMdfIdfFormData({ ...mdfIdfFormData, tipo: e.target.value })}
+                                        style={{ marginLeft: '10px', padding: '5px' }}
+                                        required
+                                    >
+                                        <option value="MDF">MDF</option>
+                                        <option value="IDF">IDF</option>
+                                    </select>
+                                </label>
+                            )}
+
+                            {!isEditingMdfIdf && mdfIdfFormData.isNew === 'Existente' && (
+                                <div>
+                                    <label>
+                                        Código Existente:
+                                        <select
+                                            value={mdfIdfFormData.codigoMDFIDF}
+                                            onChange={(e) => setMdfIdfFormData({ ...mdfIdfFormData, codigoMDFIDF: e.target.value })}
+                                            style={{ marginLeft: '10px', padding: '5px' }}
+                                            required
+                                        >
+                                            <option value="">Seleccione un código</option>
+                                            {fetchedUnitCodes.map(code => (
+                                                <option key={code} value={code}>{code}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+
+                                    {/* Preview grid */}
+                                    {mdfIdfFormData.codigoMDFIDF && (
+                                        <div style={{ marginTop: '10px' }}>
+                                            <span style={{ fontSize: '0.9em', color: 'gray' }}>Imágenes bajo este código:</span>
+                                            <div style={{ display: 'flex', gap: '5px', overflowX: 'auto', marginTop: '5px' }}>
+                                                {fetchedUnitImages
+                                                    .filter(img => img.CodigoMDFIDF === mdfIdfFormData.codigoMDFIDF)
+                                                    .map(img => (
+                                                        <img
+                                                            key={img.Id}
+                                                            src={'http://localhost:5000' + img.ImagenURL}
+                                                            alt={img.Nombre}
+                                                            style={{ width: '50px', height: '50px', objectFit: 'cover', border: '1px solid #ccc' }}
+                                                        />
+                                                    ))
+                                                }
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <label>
+                                Nombre (opcional):
+                                <input
+                                    type="text"
+                                    value={mdfIdfFormData.nombre}
+                                    onChange={(e) => setMdfIdfFormData({ ...mdfIdfFormData, nombre: e.target.value })}
+                                    style={{ marginLeft: '10px', padding: '5px', width: '200px' }}
+                                />
+                            </label>
+
+                            <label>
+                                Imagen {isEditingMdfIdf ? '(opcional para reemplazar)' : '*'}:
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setMdfIdfFormData({ ...mdfIdfFormData, file: e.target.files[0] })}
+                                    style={{ marginLeft: '10px' }}
+                                    required={!isEditingMdfIdf}
+                                />
+                            </label>
+
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                                <Button type="submit" variant="contained" color="success">Guardar</Button>
+                                <Button type="button" variant="outlined" onClick={handleCloseMdfIdfForm}>Cancelar</Button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
