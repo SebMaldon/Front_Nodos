@@ -26,6 +26,7 @@ const tablaRegistros = () => {
     const [isEditingMdfIdf, setIsEditingMdfIdf] = useState(false);
     const [fetchedUnitCodes, setFetchedUnitCodes] = useState([]);
     const [fetchedUnitImages, setFetchedUnitImages] = useState([]);
+    const [imgVersion, setImgVersion] = useState(Date.now()); // cache-busting para imágenes MDF/IDF
     const [mdfIdfFormData, setMdfIdfFormData] = useState({
         isNew: 'Existente',
         tipo: 'MDF',
@@ -589,15 +590,13 @@ const tablaRegistros = () => {
     // Función para abrir el modal de todas las imágenes de la unidad (MDF IDF)
     const handleImagenesUnidad = async () => {
         try {
-            // Obtener las imágenes solventadas desde el backend
             const response = await axios.get(`http://localhost:5000/api/nodos/imagenes/${filtros.unidad}`);
-
             const ImagenesNodos = response.data;
-
-            // Actualizar el nodo con las imágenes solventadas
             setSelectedImagesUnidad(ImagenesNodos);
+            return ImagenesNodos; // retorna los datos para uso inmediato
         } catch (error) {
             console.error('Error al obtener los datos:', error);
+            return null;
         }
     };
 
@@ -617,31 +616,49 @@ const tablaRegistros = () => {
         if (!unidadRef) return;
 
         try {
-            const response = await axios.get(`http://localhost:5000/api/nodos/mdf-idf-codigos/${unidadRef}`);
-            // The endpoint returns a plain array of strings like ["IDF_1174", "MDF_1174", ...]
-            const codigos = response.data || [];
-            setFetchedUnitCodes(codigos); // already a string[]
-            setFetchedUnitImages([]); // no image previews from this endpoint
+            // Cargar códigos e imágenes de la unidad en paralelo
+            const [codigosRes, imagenesRes] = await Promise.all([
+                axios.get(`http://localhost:5000/api/nodos/mdf-idf-codigos/${unidadRef}`),
+                axios.get(`http://localhost:5000/api/nodos/imagenes/${unidadRef}`)
+            ]);
+            const codigos = codigosRes.data || [];
+            const imagenes = imagenesRes.data?.MDF_IDF_Images || [];
+            setFetchedUnitCodes(codigos);
+            setFetchedUnitImages(imagenes);
         } catch (error) {
-            console.error('Error al obtener códigos MDF/IDF:', error);
+            console.error('Error al obtener códigos/imágenes MDF/IDF:', error);
             setFetchedUnitCodes([]);
             setFetchedUnitImages([]);
         }
     };
 
-    const handleEditMdfIdfClick = (image) => {
+    const handleEditMdfIdfClick = async (image) => {
+        const unidadRef = image.ReferenciaUnidad || '';
         setMdfIdfFormData({
             id: image.Id,
             isNew: 'Editando', // Solo para edición
             tipo: image.Tipo || 'MDF',
-            unidadForm: image.ReferenciaUnidad || '',
+            unidadForm: unidadRef,
             codigoMDFIDF: image.CodigoMDFIDF || '',
             nombre: image.Nombre || '',
             file: null
         });
+        setFetchedUnitCodes([]);
+        setFetchedUnitImages([]);
+        if (unidadRef) {
+            try {
+                const [codigosRes, imagenesRes] = await Promise.all([
+                    axios.get(`http://localhost:5000/api/nodos/mdf-idf-codigos/${unidadRef}`),
+                    axios.get(`http://localhost:5000/api/nodos/imagenes/${unidadRef}`)
+                ]);
+                setFetchedUnitCodes(codigosRes.data || []);
+                setFetchedUnitImages(imagenesRes.data?.MDF_IDF_Images || []);
+            } catch (error) {
+                console.error('Error al cargar códigos/imágenes para edición:', error);
+            }
+        }
         setIsEditingMdfIdf(true);
         setShowMdfIdfForm(true);
-        // Eliminado: setSelectedImage(null); para mantener la imagen grande visible mientras se edita
     };
 
     const handleDeleteMdfIdf = async (id) => {
@@ -650,6 +667,7 @@ const tablaRegistros = () => {
             await axios.delete(`http://localhost:5000/api/nodos/mdf-idf-imagenes/${id}`);
             alert('Imagen eliminada con éxito');
             setSelectedImage(null); // Cerrar imagen grande
+            setImgVersion(Date.now()); // Forzar rotura de cache
             handleImagenesUnidad(); // Recargar
         } catch (error) {
             console.error('Error al eliminar:', error);
@@ -670,6 +688,9 @@ const tablaRegistros = () => {
                 const nombreUnidad = unidadObj ? unidadObj.nombre : referenciaUnidad;
                 formData.append('NombreUnidad', nombreUnidad);
                 formData.append('ReferenciaUnidad', referenciaUnidad);
+                if (mdfIdfFormData.codigoMDFIDF) {
+                    formData.append('CodigoMDFIDF', mdfIdfFormData.codigoMDFIDF);
+                }
                 if (mdfIdfFormData.file) {
                     formData.append('newImage', mdfIdfFormData.file);
                 }
@@ -695,7 +716,18 @@ const tablaRegistros = () => {
                 alert('Imagen agregada con éxito');
             }
             handleCloseMdfIdfForm();
-            handleImagenesUnidad(); // Recargar lista
+            setImgVersion(Date.now()); // Forzar rotura de cache
+            const datosActualizados = await handleImagenesUnidad(); // Recargar lista y obtener datos frescos
+
+            // Si era una edición, actualizar selectedImage al instante con los datos recién obtenidos
+            if (isEditingMdfIdf && datosActualizados) {
+                const imagenActualizada = datosActualizados.MDF_IDF_Images?.find(
+                    img => img.Id === mdfIdfFormData.id
+                );
+                if (imagenActualizada) {
+                    setSelectedImage({ ...imagenActualizada, isMdfIdf: true });
+                }
+            }
         } catch (error) {
             console.error('Error al guardar:', error);
             alert('Error al guardar la imagen');
@@ -1432,7 +1464,7 @@ const tablaRegistros = () => {
                                             <div className="image-date">{image.FechaCaptura}</div>
                                         </div>
                                         <img
-                                            src={'http://localhost:5000' + image.ImagenURL}
+                                            src={'http://localhost:5000' + image.ImagenURL + '?v=' + imgVersion}
                                             alt={`Imagen ${index + 1}`}
                                             className="thumbnail-image"
                                             onClick={() => setSelectedImage({ ...image, isMdfIdf: true })}
@@ -1460,13 +1492,13 @@ const tablaRegistros = () => {
                         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                     > {/* Contenedor del modal */}
                         <img
-                            src={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL} // Soporta ambos formatos
+                            src={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')} // Soporta ambos formatos
                             alt="Imagen en grande" // Texto alternativo
                             style={{ maxWidth: '75%', maxHeight: '75%', objectFit: 'contain' }} // Estilos
                         />
                         <br />
-                        <a href={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL} target="_blank" rel="noopener noreferrer">
-                            URL: {typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL}
+                        <a href={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')} target="_blank" rel="noopener noreferrer">
+                            URL: {typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')}
                         </a>
 
                         {/* Botones adicionales solo si es imagen de MDF/IDF */}
@@ -1577,20 +1609,77 @@ const tablaRegistros = () => {
 
                                     {/* Preview grid */}
                                     {mdfIdfFormData.codigoMDFIDF && (
-                                        <div style={{ marginTop: '10px' }}>
+                                        <div style={{ marginTop: '10px', textAlign: 'center' }}>
                                             <span style={{ fontSize: '0.9em', color: 'gray' }}>Imágenes bajo este código:</span>
-                                            <div style={{ display: 'flex', gap: '5px', overflowX: 'auto', marginTop: '5px' }}>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', marginTop: '8px' }}>
                                                 {fetchedUnitImages
                                                     .filter(img => img.CodigoMDFIDF === mdfIdfFormData.codigoMDFIDF)
                                                     .map(img => (
-                                                        <img
-                                                            key={img.Id}
-                                                            src={'http://localhost:5000' + img.ImagenURL}
-                                                            alt={img.Nombre}
-                                                            style={{ width: '50px', height: '50px', objectFit: 'cover', border: '1px solid #ccc' }}
-                                                        />
+                                                        <div key={img.Id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                                            <img
+                                                                src={'http://localhost:5000' + img.ImagenURL + '?v=' + imgVersion}
+                                                                alt={img.Nombre || 'Imagen'}
+                                                                style={{ width: '120px', height: '120px', objectFit: 'cover', border: '1px solid #ccc', borderRadius: '6px', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}
+                                                            />
+                                                            {img.Nombre && (
+                                                                <span style={{ fontSize: '0.75em', color: '#555', maxWidth: '120px', textAlign: 'center', wordBreak: 'break-word' }}>{img.Nombre}</span>
+                                                            )}
+                                                        </div>
                                                     ))
                                                 }
+                                                {fetchedUnitImages.filter(img => img.CodigoMDFIDF === mdfIdfFormData.codigoMDFIDF).length === 0 && (
+                                                    <span style={{ fontSize: '0.85em', color: '#aaa' }}>Sin imágenes aún.</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Selector de código en modo edición */}
+                            {isEditingMdfIdf && (
+                                <div>
+                                    <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                                        Código MDF/IDF:
+                                    </label>
+                                    <select
+                                        value={mdfIdfFormData.codigoMDFIDF}
+                                        onChange={(e) => setMdfIdfFormData({ ...mdfIdfFormData, codigoMDFIDF: e.target.value })}
+                                        style={{ padding: '5px', width: '100%' }}
+                                    >
+                                        <option value="">Sin código asignado</option>
+                                        {fetchedUnitCodes.map(code => (
+                                            <option key={code} value={code}>{code}</option>
+                                        ))}
+                                    </select>
+                                    <small style={{ color: 'gray' }}>Unidad: {unidades.find(u => String(u.ref) === String(mdfIdfFormData.unidadForm))?.nombre || mdfIdfFormData.unidadForm}</small>
+
+                                    {/* Preview de imágenes del código seleccionado */}
+                                    {mdfIdfFormData.codigoMDFIDF && (
+                                        <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                                            <span style={{ fontSize: '0.9em', color: 'gray' }}>Imágenes bajo este código:</span>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', marginTop: '8px' }}>
+                                                {fetchedUnitImages
+                                                    .filter(img => img.CodigoMDFIDF === mdfIdfFormData.codigoMDFIDF)
+                                                    .map(img => (
+                                                        <div key={img.Id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                                            <img
+                                                                src={'http://localhost:5000' + img.ImagenURL + '?v=' + imgVersion}
+                                                                alt={img.Nombre || 'Imagen'}
+                                                                style={{ width: '120px', height: '120px', objectFit: 'cover', border: img.Id === mdfIdfFormData.id ? '3px solid var(--imss-green)' : '1px solid #ccc', borderRadius: '6px', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}
+                                                            />
+                                                            {img.Nombre && (
+                                                                <span style={{ fontSize: '0.75em', color: '#555', maxWidth: '120px', textAlign: 'center', wordBreak: 'break-word' }}>{img.Nombre}</span>
+                                                            )}
+                                                            {img.Id === mdfIdfFormData.id && (
+                                                                <span style={{ fontSize: '0.7em', color: 'var(--imss-green)', fontWeight: 'bold' }}>← Editando</span>
+                                                            )}
+                                                        </div>
+                                                    ))
+                                                }
+                                                {fetchedUnitImages.filter(img => img.CodigoMDFIDF === mdfIdfFormData.codigoMDFIDF).length === 0 && (
+                                                    <span style={{ fontSize: '0.85em', color: '#aaa' }}>Sin imágenes aún.</span>
+                                                )}
                                             </div>
                                         </div>
                                     )}
