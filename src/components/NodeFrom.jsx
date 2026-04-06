@@ -365,421 +365,195 @@ const NodeFrom = ({ onAddNodo }) => {
         <>
             <form onSubmit={handleSubmit}> {/* Agregar el manejador de envío del formulario */}
                 <h2>Registrar Nuevo Nodo</h2>
-            {/* Campos del formulario */}
-            <div>
-                <label>Unidad:</label>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <select
-                        name="Unidad" // Nombre del campo
-                        value={formData.Unidad} // Valor del campo
-                        onChange={handleChange} // Manejar cambios en el campo
-                        required // Campo requerido
-                        style={{ flexGrow: 1 }}
-                    >
-                        <option value="">Seleccione una unidad</option> {/* Opción por defecto */}
-                        {unidades.map((unidad) => ( // Mapear las unidades para mostrarlas en el select
-                            <option key={unidad.nombre} value={unidad.nombre}> {/* Opción de la unidad con su referencia */}
-                                {unidad.nombre} {/* Nombre de la unidad */}
-                            </option>
-                        ))}
-                    </select>
-                    <Button variant="outlined" size="small" onClick={() => setShowUnidadesModal(true)}>
-                        Gestionar
-                    </Button>
-                </div>
-            </div>
-            <div>
-                <label>Ubicación:</label>
-                <input
-                    style={{ width: '100%' }}
-                    name="Ubicacion" // Nombre del campo
-                    value={formData.Ubicacion} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    label="Ubicación del nodo"
-                    placeholder='Ingresa la ubicación del nodo'
-                />
-            </div>
-            <div>
-                <label>IP del Switch:</label>
-                <input
-                    name="IpSwitch" // Nombre del campo
-                    value={formData.IpSwitch} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    required // Campo requerido
-                    placeholder="Ingresa la dirección IP del Switch"
-                />
-            </div>
-            <div>
-                <label>Puerto:</label>
-                <input
-                    name="Puerto" // Nombre del campo
-                    value={formData.Puerto} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    required // Campo requerido
-                    placeholder="Ingresa el puerto al que esta conectado el cable"
-                />
-            </div>
-            <div>
-                <label>Longitud:</label>
-                <input
-                    name="Longitud" // Nombre del campo
-                    type="number" // Tipo de campo
-                    min="0" // Valor mínimo
-                    step="0.01"   // Permite decimales
-                    value={formData.Longitud || '0'} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    //required // Campo requerido
-                    placeholder="Ingresa la longitud de su cable"
-                />
-            </div>
-            <div>
-                <label>Área:</label>
-                <input
-                    name="Area" // Nombre del campo
-                    value={formData.Area} // Valor del campo
-                    placeholder='Ingresa el área del nodo'
-                    onChange={handleChange} // Manejar cambios en el campo
-                />
-            </div>
-            <div>
-                <label>Categoría del Cable:</label>
-                <select
-                    name='CategoriaCable' // Nombre del campo
-                    value={formData.CategoriaCable || ''} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    required // Campo requerido
-                >
-                    <option value='Sin categoría'>Seleccione una categoría</option> {/* Opción por defecto */}
-                    <option value='5'>Categoría 5</option> {/* Opciones de categoría */}
-                    <option value='5e'>Categoría 5e</option> {/* Opciones de categoría */}
-                    <option value='6'>Categoría 6</option> {/* Opciones de categoría */}
-                    <option value='6A'>Categoría 6A</option> {/* Opciones de categoría */}
-                </select>
-            </div>
-            <div>
-                <label>Año de Instalación:</label>
-                <input
-                    name="AnioInstalacion" // Nombre del campo
-                    type="number" // Tipo de campo
-                    min="0"
-                    max={new Date().getFullYear()} // Año actual
-                    value={formData.AnioInstalacion || '0'} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    //required // Campo requerido
-                    placeholder="Ingresa el año de instalación del nodo"
-                />
-            </div>
-            <div>
-                <label>Estado del Cable:</label>
-                <select
-                    name='EstadoCable' // Nombre del campo
-                    value={formData.EstadoCable || ''} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    required // Campo requerido
-                >
-                    <option value='Sin estado'>Seleccione un estado</option> {/* Opción por defecto */}
-                    <option value='Bueno'>Bueno</option> {/* Opciones de estado */}
-                    <option value='Regular'>Regular</option> {/* Opciones de estado */}
-                    <option value='Malo'>Malo</option> {/* Opciones de estado */}
-                </select>
-            </div>
-            <div>
-                <label>Nodos faltantes:</label>
-                <input
-                    name="Nodos_faltantes" // Nombre del campo
-                    type="number" // Tipo de campo
-                    min="0"
-                    max="99999"
-                    value={formData.Nodos_faltantes || '0'} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    required // Campo requerido
-                    placeholder="Ingresa el número de nodos faltantes"
-                />
-            </div>
-            <div>
-                <label>Observaciones:</label>
-                <textarea
-                    name="Observaciones"
-                    value={formData.Observaciones} // Valor del campo
-                    onChange={handleChange} // Manejar cambios en el campo
-                    onBlur={handleObservacionesBlur}
-                    style={{ height: '65px', width: '99%', resize: 'none', borderRadius: '5px' }}
-                    placeholder="Ingresa las observaciones del nodo"
-                    //required
-                />
-            </div>
-            <div>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: '10px' }}>
-                    Requiere mantenimiento
-                    <input
-                        style={{ width: '20px', height: '20px' }}
-                        type="checkbox" // Tipo de campo
-                        name="Atencion" // Nombre del campo
-                        value={formData.Atencion} // Valor actual del checkbox
-                        onChange={handleChange} // Manejar cambios en el checkbox
-                    />
-                </label>
-            </div>
-            <div>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: '10px' }}>
-                    Requiere otro tipo de atención
-                    <input
-                        style={{ width: '20px', height: '20px' }}
-                        type="checkbox" // Tipo de campo
-                        name="OtraAtencion" // Nombre del campo
-                        value={formData.OtraAtencion} // Valor actual del checkbox
-                        onChange={handleChange} // Manejar cambios en el checkbox
-                    />
-                </label>
-            </div>
-            <div>
-                <br/>
-                <Tooltip title='Registrar materiales para el nodo'>
-                    <Button
-                        size="large"
-                        variant="contained"
-                        onClick={() => (setShowMaterialesModal(true))}
-                    >
-                        Agregar materiales necesarios
-                    </Button>
-                </Tooltip>
-                {/* Mostrar resumen de materiales seleccionados */}
-                {materialesSeleccionados.length > 0 && (
-                    <div style={{ margin: '10px 0', padding: '10px', border: '1px solid #ddd' }}>
-                        <h4>Materiales a solicitar:</h4>
-                        <List>
-                            {materialesSeleccionados.map(material => (
-                                <ListItem
-                                    key={material.id}
-                                    secondaryAction={
-                                        <Button onClick={() => eliminarMaterial(material.id)} style={{ backgroundColor: 'red', color: 'white' }}>
-                                            Eliminar
-                                        </Button>
-                                    }
-                                >
-                                    <ListItemText
-                                        primary={`${material.nombre}`}
-                                        secondary={`${material.cantidad} ${material.unidad}`}
-                                    />
-                                </ListItem>
-                            ))}
-                        </List>
-                    </div>
-                )}
-                <br />
-                <br />
-            </div>
-            <div>
-                <label>Imágenes:</label>
-                <input
-                    type="file" // Tipo de campo
-                    name="images" // Nombre del campo
-                    multiple // Permitir la selección de múltiples archivos
-                    onChange={handleFileChange} // Manejar cambios en la selección de archivos
-                />
-            </div>
-            {!EstaVacio(imageFiles) && (
+                {/* Campos del formulario */}
                 <div>
-                    <h4>Imágenes Seleccionadas:</h4>
-                    <ul>
-                        {imageFiles.map((file, index) => ( // Mostrar los archivos seleccionados
-                            <li key={index}> {/* Clave única para cada archivo */}
-                                {file.name} {/* Mostrar el nombre del archivo */}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
-            <Tooltip title='Registrar nuevo nodo'>
-                <Button
-                    size="large"
-                    variant="contained"
-                    type="submit"
-                >
-                    Registrar
-                </Button> {/* Botón para enviar el formulario */}
-            </Tooltip>
-
-            {/* Modal para seleccionar destino de las observaciones */}
-            {showObservacionesDestinoModal && (
-                <div
-                    className="modal-overlay"
-                    onClick={() => {
-                        setShowObservacionesDestinoModal(false);
-                        // Revertir a la observación anterior si el usuario cancela
-                        setFormData({
-                            ...formData,
-                            Observaciones: observacionAnterior
-                        });
-                    }}
-                >
-                    <div
-                        className="modal"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ width: '100%', maxWidth: '500px', padding: '20px' }}
-                    >
-                        <h3>¿A qué tipo de atención corresponde esta observación?</h3>
-                        <p>{observacionesUsuario}</p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '20px 0' }}>
-                            <Button
-                                variant="contained"
-                                onClick={() => handleObservacionDestino('mantenimiento')}
-                            >
-                                Solo mantenimiento
-                            </Button>
-                            <Button
-                                variant="contained"
-                                onClick={() => handleObservacionDestino('otro')}
-                            >
-                                Solo otro tipo de atención
-                            </Button>
-                            <Button
-                                variant="contained"
-                                onClick={() => handleObservacionDestino('ambos')}
-                            >
-                                Ambos tipos de atención
-                            </Button>
-                        </div>
-                        <Button
-                            variant="outlined"
-                            onClick={() => {
-                                setShowObservacionesDestinoModal(false);
-                                // Revertir a la observación anterior si el usuario cancela
-                                setFormData({
-                                    ...formData,
-                                    Observaciones: observacionAnterior
-                                });
-                            }}
+                    <label>Unidad:</label>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <select
+                            name="Unidad" // Nombre del campo
+                            value={formData.Unidad} // Valor del campo
+                            onChange={handleChange} // Manejar cambios en el campo
+                            required // Campo requerido
+                            style={{ flexGrow: 1 }}
                         >
-                            Cancelar
+                            <option value="">Seleccione una unidad</option> {/* Opción por defecto */}
+                            {unidades.map((unidad) => ( // Mapear las unidades para mostrarlas en el select
+                                <option key={unidad.nombre} value={unidad.nombre}> {/* Opción de la unidad con su referencia */}
+                                    {unidad.nombre} {/* Nombre de la unidad */}
+                                </option>
+                            ))}
+                        </select>
+                        <Button variant="outlined" size="small" onClick={() => setShowUnidadesModal(true)}>
+                            Gestionar
                         </Button>
                     </div>
                 </div>
-            )}
-
-            {/* Modal para ingresar observaciones */}
-            {showObservacionesModal && (
-                <div
-                    className="modal-overlay"
-                    onClick={() => {
-                        // Revertir el cambio si el usuario cancela
-
-                        // Actualizar el estado del formulario para desmarcar el checkbox
-                        setFormData((prevFormData) => ({
-                            ...prevFormData,
-                            [campoCambiado]: false, // Revertir el estado del checkbox
-                        }));
-
-                        setShowObservacionesModal(false); // Cerrar la modal
-                        setObservacionesUsuario(''); // Limpiar el campo de observaciones
-                    }} // Cierra el modal al hacer clic en el overlay
-                >
-                    <div
-                        className="modal"
-                        onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal cierre el overlay
-                    > {/* Contenedor del modal */}
-                        <h3>Observaciones adicionales</h3>
-                        <div>
-                            <textarea
-                                placeholder="Ingrese las observaciones del cambio..."
-                                value={observacionesUsuario}
-                                onChange={(e) => setObservacionesUsuario(e.target.value)}
-                                style={{ height: '128px', width: '100%', resize: 'none', borderRadius: '5px' }}
-                            />
-                        </div>
-                        <div>
-                            <Button
-                                variant="contained"
-                                style={{ marginRight: '10px' }}
-                                onClick={() => {
-                                    // Guardar las observaciones en el estado del formulario
-                                    if (campoCambiado === 'Atencion') {
-                                        setFormData({
-                                            ...formData,
-                                            ObservacionesUsuarioAtencion: observacionesUsuario,
-                                        });
-                                    } else if (campoCambiado === 'OtraAtencion') {
-                                        setFormData({
-                                            ...formData,
-                                            ObservacionesUsuarioOtraAtencion: observacionesUsuario,
-                                        });
-                                    }
-                                    setShowObservacionesModal(false); // Cerrar la modal
-                                    setObservacionesUsuario(''); // Limpiar el campo de observaciones
-                                }}
-                            >
-                                Aceptar
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                onClick={() => {
-                                    // Revertir el cambio si el usuario cancela
-
-                                    // Actualizar el estado del formulario para desmarcar el checkbox
-                                    setFormData((prevFormData) => ({
-                                        ...prevFormData,
-                                        [campoCambiado]: false, // Revertir el estado del checkbox
-                                    }));
-
-                                    setShowObservacionesModal(false); // Cerrar la modal
-                                    setObservacionesUsuario(''); // Limpiar el campo de observaciones
-                                }}
-                            >
-                                Cancelar
-                            </Button>
-                        </div>
-                    </div>
+                <div>
+                    <label>Ubicación:</label>
+                    <input
+                        style={{ width: '100%' }}
+                        name="Ubicacion" // Nombre del campo
+                        value={formData.Ubicacion} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        label="Ubicación del nodo"
+                        placeholder='Ingresa la ubicación del nodo'
+                    />
                 </div>
-            )}
-
-            {/* Modal de materiales */}
-            {showMaterialesModal && (
-                <div
-                    className="modal-overlay"
-                    onClick={() => setShowMaterialesModal(false)} // Cierra el modal al hacer clic en el overlay
-                >
-                    <div
-                        className="modal"
-                        onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal cierre el overlay
-                        style={{ width: '100%', maxWidth: '500px', padding: '20px' }}
-                    > {/* Contenedor del modal */}
-                        <h3>Agregar Materiales Necesarios</h3>
-
-                        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', height: '40px' }}>
-                            <Select
-                                value={materialActual.id}
-                                onChange={handleMaterialChange}
-                                displayEmpty
-                                fullWidth
-                            >
-                                <MenuItem value="">Seleccione un material</MenuItem>
-                                {materiales.map(material => (
-                                    <MenuItem key={material.Id} value={material.Id}>
-                                        {material.Nombre} ({material.UnidadMedida})
-                                    </MenuItem>
-                                ))}
-                            </Select>
-
-                            {renderCantidadInput()}
-
-                            <Button
-                                variant="contained"
-                                onClick={agregarMaterial}
-                                disabled={!materialActual.id}
-                            >
-                                Agregar
-                            </Button>
-                        </div>
-
-                        <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '20px' }}>
+                <div>
+                    <label>IP del Switch:</label>
+                    <input
+                        name="IpSwitch" // Nombre del campo
+                        value={formData.IpSwitch} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        required // Campo requerido
+                        placeholder="Ingresa la dirección IP del Switch"
+                    />
+                </div>
+                <div>
+                    <label>Puerto:</label>
+                    <input
+                        name="Puerto" // Nombre del campo
+                        value={formData.Puerto} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        required // Campo requerido
+                        placeholder="Ingresa el puerto al que esta conectado el cable"
+                    />
+                </div>
+                <div>
+                    <label>Longitud:</label>
+                    <input
+                        name="Longitud" // Nombre del campo
+                        type="number" // Tipo de campo
+                        min="0" // Valor mínimo
+                        step="0.01"   // Permite decimales
+                        value={formData.Longitud || '0'} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        //required // Campo requerido
+                        placeholder="Ingresa la longitud de su cable"
+                    />
+                </div>
+                <div>
+                    <label>Área:</label>
+                    <input
+                        name="Area" // Nombre del campo
+                        value={formData.Area} // Valor del campo
+                        placeholder='Ingresa el área del nodo'
+                        onChange={handleChange} // Manejar cambios en el campo
+                    />
+                </div>
+                <div>
+                    <label>Categoría del Cable:</label>
+                    <select
+                        name='CategoriaCable' // Nombre del campo
+                        value={formData.CategoriaCable || ''} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        required // Campo requerido
+                    >
+                        <option value='Sin categoría'>Seleccione una categoría</option> {/* Opción por defecto */}
+                        <option value='5'>Categoría 5</option> {/* Opciones de categoría */}
+                        <option value='5e'>Categoría 5e</option> {/* Opciones de categoría */}
+                        <option value='6'>Categoría 6</option> {/* Opciones de categoría */}
+                        <option value='6A'>Categoría 6A</option> {/* Opciones de categoría */}
+                    </select>
+                </div>
+                <div>
+                    <label>Año de Instalación:</label>
+                    <input
+                        name="AnioInstalacion" // Nombre del campo
+                        type="number" // Tipo de campo
+                        min="0"
+                        max={new Date().getFullYear()} // Año actual
+                        value={formData.AnioInstalacion || '0'} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        //required // Campo requerido
+                        placeholder="Ingresa el año de instalación del nodo"
+                    />
+                </div>
+                <div>
+                    <label>Estado del Cable:</label>
+                    <select
+                        name='EstadoCable' // Nombre del campo
+                        value={formData.EstadoCable || ''} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        required // Campo requerido
+                    >
+                        <option value='Sin estado'>Seleccione un estado</option> {/* Opción por defecto */}
+                        <option value='Bueno'>Bueno</option> {/* Opciones de estado */}
+                        <option value='Regular'>Regular</option> {/* Opciones de estado */}
+                        <option value='Malo'>Malo</option> {/* Opciones de estado */}
+                    </select>
+                </div>
+                <div>
+                    <label>Nodos faltantes:</label>
+                    <input
+                        name="Nodos_faltantes" // Nombre del campo
+                        type="number" // Tipo de campo
+                        min="0"
+                        max="99999"
+                        value={formData.Nodos_faltantes || '0'} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        required // Campo requerido
+                        placeholder="Ingresa el número de nodos faltantes"
+                    />
+                </div>
+                <div>
+                    <label>Observaciones:</label>
+                    <textarea
+                        name="Observaciones"
+                        value={formData.Observaciones} // Valor del campo
+                        onChange={handleChange} // Manejar cambios en el campo
+                        onBlur={handleObservacionesBlur}
+                        style={{ height: '65px', width: '99%', resize: 'none', borderRadius: '5px' }}
+                        placeholder="Ingresa las observaciones del nodo"
+                    //required
+                    />
+                </div>
+                <div>
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: '10px' }}>
+                        Requiere mantenimiento
+                        <input
+                            style={{ width: '20px', height: '20px' }}
+                            type="checkbox" // Tipo de campo
+                            name="Atencion" // Nombre del campo
+                            value={formData.Atencion} // Valor actual del checkbox
+                            onChange={handleChange} // Manejar cambios en el checkbox
+                        />
+                    </label>
+                </div>
+                <div>
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: '10px' }}>
+                        Requiere otro tipo de atención
+                        <input
+                            style={{ width: '20px', height: '20px' }}
+                            type="checkbox" // Tipo de campo
+                            name="OtraAtencion" // Nombre del campo
+                            value={formData.OtraAtencion} // Valor actual del checkbox
+                            onChange={handleChange} // Manejar cambios en el checkbox
+                        />
+                    </label>
+                </div>
+                <div>
+                    <br />
+                    <Tooltip title='Registrar materiales para el nodo'>
+                        <Button
+                            size="large"
+                            variant="contained"
+                            onClick={() => (setShowMaterialesModal(true))}
+                        >
+                            Agregar materiales necesarios
+                        </Button>
+                    </Tooltip>
+                    {/* Mostrar resumen de materiales seleccionados */}
+                    {materialesSeleccionados.length > 0 && (
+                        <div style={{ margin: '10px 0', padding: '10px', border: '1px solid #ddd' }}>
+                            <h4>Materiales a solicitar:</h4>
                             <List>
                                 {materialesSeleccionados.map(material => (
                                     <ListItem
                                         key={material.id}
                                         secondaryAction={
-                                            <Button edge="end" onClick={() => eliminarMaterial(material.id)} variant='contained' className='delete-button'>
-                                                Eliminar material
+                                            <Button onClick={() => eliminarMaterial(material.id)} style={{ backgroundColor: 'red', color: 'white' }}>
+                                                Eliminar
                                             </Button>
                                         }
                                     >
@@ -791,31 +565,257 @@ const NodeFrom = ({ onAddNodo }) => {
                                 ))}
                             </List>
                         </div>
+                    )}
+                    <br />
+                    <br />
+                </div>
+                <div>
+                    <label>Imágenes:</label>
+                    <input
+                        type="file" // Tipo de campo
+                        name="images" // Nombre del campo
+                        multiple // Permitir la selección de múltiples archivos
+                        onChange={handleFileChange} // Manejar cambios en la selección de archivos
+                    />
+                </div>
+                {!EstaVacio(imageFiles) && (
+                    <div>
+                        <h4>Imágenes Seleccionadas:</h4>
+                        <ul>
+                            {imageFiles.map((file, index) => ( // Mostrar los archivos seleccionados
+                                <li key={index}> {/* Clave única para cada archivo */}
+                                    {file.name} {/* Mostrar el nombre del archivo */}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
 
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                            <Button
-                                variant="contained"
-                                onClick={() => setShowMaterialesModal(false)}
-                            >
-                                Guardar
-                            </Button>
+                <Tooltip title='Registrar nuevo nodo'>
+                    <Button
+                        size="large"
+                        variant="contained"
+                        type="submit"
+                    >
+                        Registrar
+                    </Button> {/* Botón para enviar el formulario */}
+                </Tooltip>
+
+                {/* Modal para seleccionar destino de las observaciones */}
+                {showObservacionesDestinoModal && (
+                    <div
+                        className="modal-overlay"
+                        onClick={() => {
+                            setShowObservacionesDestinoModal(false);
+                            // Revertir a la observación anterior si el usuario cancela
+                            setFormData({
+                                ...formData,
+                                Observaciones: observacionAnterior
+                            });
+                        }}
+                    >
+                        <div
+                            className="modal"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ width: '100%', maxWidth: '500px', padding: '20px' }}
+                        >
+                            <h3>¿A qué tipo de atención corresponde esta observación?</h3>
+                            <p>{observacionesUsuario}</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '20px 0' }}>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => handleObservacionDestino('mantenimiento')}
+                                >
+                                    Solo mantenimiento
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => handleObservacionDestino('otro')}
+                                >
+                                    Solo otro tipo de atención
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => handleObservacionDestino('ambos')}
+                                >
+                                    Ambos tipos de atención
+                                </Button>
+                            </div>
                             <Button
                                 variant="outlined"
                                 onClick={() => {
-                                    setMaterialesSeleccionados([])
-                                    setShowMaterialesModal(false)
+                                    setShowObservacionesDestinoModal(false);
+                                    // Revertir a la observación anterior si el usuario cancela
+                                    setFormData({
+                                        ...formData,
+                                        Observaciones: observacionAnterior
+                                    });
                                 }}
                             >
                                 Cancelar
                             </Button>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+
+                {/* Modal para ingresar observaciones */}
+                {showObservacionesModal && (
+                    <div
+                        className="modal-overlay"
+                        onClick={() => {
+                            // Revertir el cambio si el usuario cancela
+
+                            // Actualizar el estado del formulario para desmarcar el checkbox
+                            setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                [campoCambiado]: false, // Revertir el estado del checkbox
+                            }));
+
+                            setShowObservacionesModal(false); // Cerrar la modal
+                            setObservacionesUsuario(''); // Limpiar el campo de observaciones
+                        }} // Cierra el modal al hacer clic en el overlay
+                    >
+                        <div
+                            className="modal"
+                            onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal cierre el overlay
+                        > {/* Contenedor del modal */}
+                            <h3>Observaciones adicionales</h3>
+                            <div>
+                                <textarea
+                                    placeholder="Ingrese las observaciones del cambio..."
+                                    value={observacionesUsuario}
+                                    onChange={(e) => setObservacionesUsuario(e.target.value)}
+                                    style={{ height: '128px', width: '100%', resize: 'none', borderRadius: '5px' }}
+                                />
+                            </div>
+                            <div>
+                                <Button
+                                    variant="contained"
+                                    style={{ marginRight: '10px' }}
+                                    onClick={() => {
+                                        // Guardar las observaciones en el estado del formulario
+                                        if (campoCambiado === 'Atencion') {
+                                            setFormData({
+                                                ...formData,
+                                                ObservacionesUsuarioAtencion: observacionesUsuario,
+                                            });
+                                        } else if (campoCambiado === 'OtraAtencion') {
+                                            setFormData({
+                                                ...formData,
+                                                ObservacionesUsuarioOtraAtencion: observacionesUsuario,
+                                            });
+                                        }
+                                        setShowObservacionesModal(false); // Cerrar la modal
+                                        setObservacionesUsuario(''); // Limpiar el campo de observaciones
+                                    }}
+                                >
+                                    Aceptar
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => {
+                                        // Revertir el cambio si el usuario cancela
+
+                                        // Actualizar el estado del formulario para desmarcar el checkbox
+                                        setFormData((prevFormData) => ({
+                                            ...prevFormData,
+                                            [campoCambiado]: false, // Revertir el estado del checkbox
+                                        }));
+
+                                        setShowObservacionesModal(false); // Cerrar la modal
+                                        setObservacionesUsuario(''); // Limpiar el campo de observaciones
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal de materiales */}
+                {showMaterialesModal && (
+                    <div
+                        className="modal-overlay"
+                        onClick={() => setShowMaterialesModal(false)} // Cierra el modal al hacer clic en el overlay
+                    >
+                        <div
+                            className="modal"
+                            onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal cierre el overlay
+                            style={{ width: '100%', maxWidth: '500px', padding: '20px' }}
+                        > {/* Contenedor del modal */}
+                            <h3>Agregar Materiales Necesarios</h3>
+
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', height: '40px' }}>
+                                <Select
+                                    value={materialActual.id}
+                                    onChange={handleMaterialChange}
+                                    displayEmpty
+                                    fullWidth
+                                >
+                                    <MenuItem value="">Seleccione un material</MenuItem>
+                                    {materiales.map(material => (
+                                        <MenuItem key={material.Id} value={material.Id}>
+                                            {material.Nombre} ({material.UnidadMedida})
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+
+                                {renderCantidadInput()}
+
+                                <Button
+                                    variant="contained"
+                                    onClick={agregarMaterial}
+                                    disabled={!materialActual.id}
+                                >
+                                    Agregar
+                                </Button>
+                            </div>
+
+                            <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '20px' }}>
+                                <List>
+                                    {materialesSeleccionados.map(material => (
+                                        <ListItem
+                                            key={material.id}
+                                            secondaryAction={
+                                                <Button edge="end" onClick={() => eliminarMaterial(material.id)} variant='contained' className='delete-button'>
+                                                    Eliminar material
+                                                </Button>
+                                            }
+                                        >
+                                            <ListItemText
+                                                primary={`${material.nombre}`}
+                                                secondary={`${material.cantidad} ${material.unidad}`}
+                                            />
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => setShowMaterialesModal(false)}
+                                >
+                                    Guardar
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => {
+                                        setMaterialesSeleccionados([])
+                                        setShowMaterialesModal(false)
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </form>
 
-            <UnidadesModal 
-                open={showUnidadesModal} 
+            <UnidadesModal
+                open={showUnidadesModal}
                 onClose={() => setShowUnidadesModal(false)}
                 onUnidadesChange={fetchUnidades}
             />

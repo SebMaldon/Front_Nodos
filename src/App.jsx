@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'; // Importar las funciones useState y useEffect
 import axios from 'axios'; // Importar axios para realizar peticiones HTTP
-import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom'; // Importar React Router
+import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from 'react-router-dom'; // Importar React Router
 import './App.css'; // Importar el archivo de estilos
 import NodeForm from './components/NodeFrom'; // Importar el componente NodeForm
 import NodeTable from './components/NodeTable'; // Importar el componente NodeTable
@@ -8,46 +8,26 @@ import TablaRegistros from './pages/tablaRegistros'; // Importar la página con 
 import NodosSustitucion from './pages/NodosSustitucion'; // Importar la página con la tabla de los nodos candidatos a sustitución
 import PantallaInicio from './pages/inicio';
 
-function App() {
-    const [nodos, setNodos] = useState([]); // Estado para almacenar los nodos
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+// Navigation fuera de App para evitar re-renders y poder cerrar el menú correctamente
+function Navigation({ mobileMenuOpen, setMobileMenuOpen }) {
+    const location = useLocation();
+    const closeMenu = () => setMobileMenuOpen(false);
 
-    const [page, setPage] = useState(0); // Estado para la página actual
-    const [rowsPerPage, setRowsPerPage] = useState(10); // Estado para límite de registros
-    const [totalRegistrosApp, setTotalRegistrosApp] = useState(0);
+    return (
+        <>
+            {/* Overlay invisible: cierra el menú al tocar fuera de él */}
+            {mobileMenuOpen && (
+                <div
+                    onClick={closeMenu}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        zIndex: 998,
+                    }}
+                />
+            )}
 
-    // Función para obtener los nodos desde el backend
-    const fetchNodos = async (p = page, l = rowsPerPage) => {
-        try {
-            const response = await axios.get('http://localhost:5000/api/nodos', {
-                params: { page: p + 1, limit: l } 
-            }); 
-            setNodos(response.data.nodos); // Almacenar los nodos en el estado
-            setTotalRegistrosApp(response.data.total || 0);
-        } catch (error) {
-            console.error('Error al obtener los nodos:', error);
-        }
-    };
-
-    // Cargar los nodos al iniciar y la paginación cambie
-    useEffect(() => {
-        fetchNodos(page, rowsPerPage); 
-    }, [page, rowsPerPage]);
-
-    // Función para agregar un nuevo nodo
-    const handleAddNodo = async () => {
-        try {
-            await fetchNodos(); // Actualizar la lista de nodos después de agregar uno nuevo
-        } catch (error) {
-            console.error('Error al agregar el nodo:', error);
-        }
-    };
-
-    const Navigation = () => {
-        const location = useLocation();
-
-        return (
-            <header className="imss-header">
+            <header className="imss-header" style={{ position: 'relative', zIndex: 999 }}>
                 <div className="header-container">
                     <div className="header-logo">
                         <img src="/IMSS_Logosímbolo.png" alt="Logo IMSS" />
@@ -66,22 +46,22 @@ function App() {
                     <nav className={`header-nav ${mobileMenuOpen ? 'open' : ''}`}>
                         <ul className="nav-links">
                             <li className={location.pathname === '/' ? 'active' : ''}>
-                                <NavLink to="/" exact>
+                                <NavLink to="/" exact onClick={closeMenu}>
                                     <i className="fas fa-home"></i> Inicio
                                 </NavLink>
                             </li>
                             <li className={location.pathname.includes('/catalogo-nodos') ? 'active' : ''}>
-                                <NavLink to="/catalogo-nodos">
+                                <NavLink to="/catalogo-nodos" onClick={closeMenu}>
                                     <i className="fas fa-list"></i> Catálogo
                                 </NavLink>
                             </li>
                             <li className={location.pathname.includes('/gestion-nodos') ? 'active' : ''}>
-                                <NavLink to="/gestion-nodos">
+                                <NavLink to="/gestion-nodos" onClick={closeMenu}>
                                     <i className="fas fa-cog"></i> Gestión
                                 </NavLink>
                             </li>
                             <li className={location.pathname.includes('/catalogo-prioritarios') ? 'active' : ''}>
-                                <NavLink to="/catalogo-prioritarios">
+                                <NavLink to="/catalogo-prioritarios" onClick={closeMenu}>
                                     <i className="fas fa-exclamation-triangle"></i> Prioritarios
                                 </NavLink>
                             </li>
@@ -89,13 +69,49 @@ function App() {
                     </nav>
                 </div>
             </header>
-        );
+        </>
+    );
+}
+
+function App() {
+    const [nodos, setNodos] = useState([]); // Estado para almacenar los nodos
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const [page, setPage] = useState(0); // Estado para la página actual
+    const [rowsPerPage, setRowsPerPage] = useState(10); // Estado para límite de registros
+    const [totalRegistrosApp, setTotalRegistrosApp] = useState(0);
+
+    // Función para obtener los nodos desde el backend
+    const fetchNodos = async (p = page, l = rowsPerPage) => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/nodos', {
+                params: { page: p + 1, limit: l }
+            });
+            setNodos(response.data.nodos); // Almacenar los nodos en el estado
+            setTotalRegistrosApp(response.data.total || 0);
+        } catch (error) {
+            console.error('Error al obtener los nodos:', error);
+        }
+    };
+
+    // Cargar los nodos al iniciar y cuando la paginación cambie
+    useEffect(() => {
+        fetchNodos(page, rowsPerPage);
+    }, [page, rowsPerPage]);
+
+    // Función para agregar un nuevo nodo
+    const handleAddNodo = async () => {
+        try {
+            await fetchNodos(); // Actualizar la lista de nodos después de agregar uno nuevo
+        } catch (error) {
+            console.error('Error al agregar el nodo:', error);
+        }
     };
 
     return (
         <Router>
             <div className="App">
-                <Navigation />
+                <Navigation mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
 
                 <main className="app-content">
                     <Routes>
@@ -109,14 +125,14 @@ function App() {
                                             <NodeForm onAddNodo={handleAddNodo} />
                                         </div>
                                         <div className="table-container">
-                                            <NodeTable 
-                                                nodos={nodos} 
-                                                fetchNodos={fetchNodos} 
-                                                totalRegistrosApp={totalRegistrosApp} 
-                                                pageApp={page} 
-                                                setPageApp={setPage} 
-                                                rowsPerPageApp={rowsPerPage} 
-                                                setRowsPerPageApp={setRowsPerPage} 
+                                            <NodeTable
+                                                nodos={nodos}
+                                                fetchNodos={fetchNodos}
+                                                totalRegistrosApp={totalRegistrosApp}
+                                                pageApp={page}
+                                                setPageApp={setPage}
+                                                rowsPerPageApp={rowsPerPage}
+                                                setRowsPerPageApp={setRowsPerPage}
                                             />
                                         </div>
                                     </div>

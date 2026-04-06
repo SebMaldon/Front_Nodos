@@ -3,8 +3,8 @@ import { Button, Tooltip, TextField, ListItemText, ListItem, List, Typography, T
 import axios from 'axios';
 
 const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, rowsPerPageApp, setRowsPerPageApp }) => { // Recibe los nodos y la función para obtenerlos
-    const [pageNode, setPageNode] = useState(0); 
-    const [rowsPerPageNode, setRowsPerPageNode] = useState(10); 
+    const [pageNode, setPageNode] = useState(0);
+    const [rowsPerPageNode, setRowsPerPageNode] = useState(10);
     const [selectedRowId, setSelectedRowId] = useState(null); // Estado para la fila seleccionada
     const [hoveredRow, setHoveredRow] = useState(null);
     const [showMaterialesModal, setShowMaterialesModal] = useState(false); // Estado para mostrar el modal de materiales
@@ -69,8 +69,8 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
     // Obtener los nodos al cargar el componente o cuando cambien los filtros
     useEffect(() => {
         setPageNode(0); // Reiniciar pagina de los filtros al modificar un filtro
-        fetchNewNodos(); 
-    }, [filtros]); 
+        fetchNewNodos();
+    }, [filtros]);
 
     // Re-fetch cuando cambiamos la pagina o el limite (solo si hay filtros activos, de lo contrario App.jsx se encarga)
     useEffect(() => {
@@ -91,7 +91,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         if (filtrosEstanVacios()) {
             // App.jsx controls fetchNodos when filters are empty
             setFilteredNodos([]);
-            setTotalFaltantes(0); 
+            setTotalFaltantes(0);
             setTotalAtendidos(0);
             return;
         }
@@ -737,75 +737,75 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
             )}
 
             <div style={{ overflowX: 'auto', width: '100%' }}>
-            <table> {/* Tabla para mostrar los nodos */}
-                <thead>
-                    <tr> {/* Encabezados de la tabla */}
-                        <th>Ubicación</th>
-                        <th>Unidad</th>
-                        <th>Puerto</th>
-                        <th>IP del Switch</th>
-                        <th>Observaciones</th>
-                        {/* Column removed: Acciones */}
-                        <th>Faltantes</th>
-                        <th>M</th>
-                        <th>OA</th>
-                    </tr>
-                </thead>
-                <tbody> {/* Cuerpo de la tabla */}
-                    {/* Si filteredNodos tiene datos, usa esos, de lo contrario usa nodos */}
-                    {datosAMostrar.map((nodoData, index) => {
-                        // Determinar el color basado en si tiene imágenes y si la fila es par/impar
-                        const isEven = index % 2 === 0;
+                <table> {/* Tabla para mostrar los nodos */}
+                    <thead>
+                        <tr> {/* Encabezados de la tabla */}
+                            <th>Ubicación</th>
+                            <th>Unidad</th>
+                            <th>Puerto</th>
+                            <th>IP del Switch</th>
+                            <th>Observaciones</th>
+                            {/* Column removed: Acciones */}
+                            <th>Faltantes</th>
+                            <th>M</th>
+                            <th>OA</th>
+                        </tr>
+                    </thead>
+                    <tbody> {/* Cuerpo de la tabla */}
+                        {/* Si filteredNodos tiene datos, usa esos, de lo contrario usa nodos */}
+                        {datosAMostrar.map((nodoData, index) => {
+                            // Determinar el color basado en si tiene imágenes y si la fila es par/impar
+                            const isEven = index % 2 === 0;
 
-                        // Colores base (solo para nodos sin imágenes)
-                        const baseColor = nodoData.TieneImagenes ? '' :
-                            (isEven ? '#fb99a8' : '#f76d82');
+                            // Colores base (solo para nodos sin imágenes)
+                            const baseColor = nodoData.TieneImagenes ? '' :
+                                (isEven ? '#fb99a8' : '#f76d82');
 
-                        // Color hover (solo para nodos sin imágenes)
-                        const hoverColor = nodoData.TieneImagenes ? '' :
-                            (isEven ? '#ffdade' : '#ffc0cb');
+                            // Color hover (solo para nodos sin imágenes)
+                            const hoverColor = nodoData.TieneImagenes ? '' :
+                                (isEven ? '#ffdade' : '#ffc0cb');
 
-                        // Determinar el color actual
-                        const currentColor = (hoveredRow === index && !nodoData.TieneImagenes)
-                            ? hoverColor
-                            : baseColor;
+                            // Determinar el color actual
+                            const currentColor = (hoveredRow === index && !nodoData.TieneImagenes)
+                                ? hoverColor
+                                : baseColor;
 
 
-                        return (
-                            <tr
-                                key={index}
-                                onClick={() => setSelectedRowId(nodoData.Id)}
-                                style={{
-                                    backgroundColor: selectedRowId === nodoData.Id ? '#e3f2fd' : currentColor,
-                                    cursor: 'pointer',
-                                    border: selectedRowId === nodoData.Id ? '2px solid #1976d2' : 'none'
-                                }}
-                                // Eventos para manejar el coloreado de la fila al sobreponer el puntero
-                                onMouseEnter={() => setHoveredRow(index)}
-                                onMouseLeave={() => setHoveredRow(null)}
-                            >
-                                <td>{nodoData.Ubicacion}</td> {/* Muestra la ubicación del nodo */}
-                                <td>{nodoData.Unidad}</td> {/* Muestra la unidad del nodo */}
-                                <td style={{ textAlign: 'center' }}>{nodoData.Puerto}</td> {/* Muestra el puerto */}
-                                <td style={{ textAlign: 'center' }}>{nodoData.IpSwitch}</td> {/* Muestra la IP del switch */}
-                                <td>{nodoData.Observaciones}</td> {/* Muestra el año de instalación */}
-                                {/* Column cell removed: Acciones */}
-                                <td style={{ textAlign: 'center' }} >{nodoData.Nodos_faltantes ? nodoData.Nodos_faltantes : '0'}</td> {/* Muestra los nodos faltantes */}
-                                {/* Muestra el estado de atención del nodo con imagenes*/}
-                                <td onClick={() => handleAtencionClick(nodoData)}
-                                    style={{ cursor: 'pointer', textAlign: 'center' }}>
-                                    {nodoData.Atendido ? '✅' : ''}{nodoData.Atencion ? '⚠️' : ''} {/* Muestra un icono si requiere atención */}
-                                </td>
-                                {/* Muestra el estado de atención del nodo con imagenes*/}
-                                <td onClick={() => handleOtherAtencionClick(nodoData)}
-                                    style={{ cursor: 'pointer', textAlign: 'center' }}>
-                                    {nodoData.OtroAtendido ? '🟢' : ''}{nodoData.OtraAtencion ? '🔴' : ''} {/* Muestra un icono si requiere atención */}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
+                            return (
+                                <tr
+                                    key={index}
+                                    onClick={() => setSelectedRowId(nodoData.Id)}
+                                    style={{
+                                        backgroundColor: selectedRowId === nodoData.Id ? '#e3f2fd' : currentColor,
+                                        cursor: 'pointer',
+                                        border: selectedRowId === nodoData.Id ? '2px solid #1976d2' : 'none'
+                                    }}
+                                    // Eventos para manejar el coloreado de la fila al sobreponer el puntero
+                                    onMouseEnter={() => setHoveredRow(index)}
+                                    onMouseLeave={() => setHoveredRow(null)}
+                                >
+                                    <td>{nodoData.Ubicacion}</td> {/* Muestra la ubicación del nodo */}
+                                    <td>{nodoData.Unidad}</td> {/* Muestra la unidad del nodo */}
+                                    <td style={{ textAlign: 'center' }}>{nodoData.Puerto}</td> {/* Muestra el puerto */}
+                                    <td style={{ textAlign: 'center' }}>{nodoData.IpSwitch}</td> {/* Muestra la IP del switch */}
+                                    <td>{nodoData.Observaciones}</td> {/* Muestra el año de instalación */}
+                                    {/* Column cell removed: Acciones */}
+                                    <td style={{ textAlign: 'center' }} >{nodoData.Nodos_faltantes ? nodoData.Nodos_faltantes : '0'}</td> {/* Muestra los nodos faltantes */}
+                                    {/* Muestra el estado de atención del nodo con imagenes*/}
+                                    <td onClick={() => handleAtencionClick(nodoData)}
+                                        style={{ cursor: 'pointer', textAlign: 'center' }}>
+                                        {nodoData.Atendido ? '✅' : ''}{nodoData.Atencion ? '⚠️' : ''} {/* Muestra un icono si requiere atención */}
+                                    </td>
+                                    {/* Muestra el estado de atención del nodo con imagenes*/}
+                                    <td onClick={() => handleOtherAtencionClick(nodoData)}
+                                        style={{ cursor: 'pointer', textAlign: 'center' }}>
+                                        {nodoData.OtroAtendido ? '🟢' : ''}{nodoData.OtraAtencion ? '🔴' : ''} {/* Muestra un icono si requiere atención */}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
             </div>
 
             <TablePagination
@@ -852,20 +852,20 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedAtencionNodo.mantenimiento) && (
                             <div style={{ overflowX: 'auto', width: '100%' }}>
-                            <table>
-                                <thead>
-                                    <th>Fecha de registro</th>
-                                    <th>Observaciones del usuario</th>
-                                </thead>
-                                <tbody className='content-table-modal'>
-                                    {selectedAtencionNodo.mantenimiento.map((CamposMantenimiento, index) => ( // Mapea los registros de mantenimiento y los muestra
-                                        <tr key={index}> {/* Clave única para cada fila */}
-                                            <td>{CamposMantenimiento.FechaCambio}</td>
-                                            <td>{CamposMantenimiento.ObservacionesUsuario}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                <table>
+                                    <thead>
+                                        <th>Fecha de registro</th>
+                                        <th>Observaciones del usuario</th>
+                                    </thead>
+                                    <tbody className='content-table-modal'>
+                                        {selectedAtencionNodo.mantenimiento.map((CamposMantenimiento, index) => ( // Mapea los registros de mantenimiento y los muestra
+                                            <tr key={index}> {/* Clave única para cada fila */}
+                                                <td>{CamposMantenimiento.FechaCambio}</td>
+                                                <td>{CamposMantenimiento.ObservacionesUsuario}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)}
                         <div> {/* Contenedor de las imágenes */}
@@ -939,20 +939,20 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedSinAtencionNodo.mantenimiento) && (
                             <div style={{ overflowX: 'auto', width: '100%' }}>
-                            <table>
-                                <thead>
-                                    <th>Fecha de registro</th>
-                                    <th>Observaciones del usuario</th>
-                                </thead>
-                                <tbody className='content-table-modal'>
-                                    {selectedSinAtencionNodo.mantenimiento.map((CamposMantenimiento, index) => ( // Mapea los registros de mantenimiento
-                                        <tr key={index}> {/* Clave única para cada fila */}
-                                            <td>{CamposMantenimiento.FechaCambio}</td>
-                                            <td>{CamposMantenimiento.ObservacionesUsuario}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                <table>
+                                    <thead>
+                                        <th>Fecha de registro</th>
+                                        <th>Observaciones del usuario</th>
+                                    </thead>
+                                    <tbody className='content-table-modal'>
+                                        {selectedSinAtencionNodo.mantenimiento.map((CamposMantenimiento, index) => ( // Mapea los registros de mantenimiento
+                                            <tr key={index}> {/* Clave única para cada fila */}
+                                                <td>{CamposMantenimiento.FechaCambio}</td>
+                                                <td>{CamposMantenimiento.ObservacionesUsuario}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)}
                         <div> {/* Contenedor de las imágenes */}
@@ -1024,20 +1024,20 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                         {/* Tabla con los registros de otras atenciones que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedOtherAtencionNodo.otrasAtenciones) && (
                             <div style={{ overflowX: 'auto', width: '100%' }}>
-                            <table>
-                                <thead>
-                                    <th>Fecha de registro</th>
-                                    <th>Observaciones del usuario</th>
-                                </thead>
-                                <tbody className='content-table-modal'>
-                                    {selectedOtherAtencionNodo.otrasAtenciones.map((CamposOtrasAtenciones, index) => ( // Mapea los registros de otras atenciones y los muestra
-                                        <tr key={index}> {/* Clave única para cada fila */}
-                                            <td>{CamposOtrasAtenciones.FechaCambio}</td>
-                                            <td>{CamposOtrasAtenciones.ObservacionesUsuario}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                <table>
+                                    <thead>
+                                        <th>Fecha de registro</th>
+                                        <th>Observaciones del usuario</th>
+                                    </thead>
+                                    <tbody className='content-table-modal'>
+                                        {selectedOtherAtencionNodo.otrasAtenciones.map((CamposOtrasAtenciones, index) => ( // Mapea los registros de otras atenciones y los muestra
+                                            <tr key={index}> {/* Clave única para cada fila */}
+                                                <td>{CamposOtrasAtenciones.FechaCambio}</td>
+                                                <td>{CamposOtrasAtenciones.ObservacionesUsuario}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)}
                         <div> {/* Contenedor de las imágenes */}
@@ -1111,20 +1111,20 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedSinOtherAtencionNodo.otrasAtenciones) && (
                             <div style={{ overflowX: 'auto', width: '100%' }}>
-                            <table>
-                                <thead>
-                                    <th>Fecha de registro</th>
-                                    <th>Observaciones del usuario</th>
-                                </thead>
-                                <tbody className='content-table-modal'>
-                                    {selectedSinOtherAtencionNodo.otrasAtenciones.map((CamposOtrasAtenciones, index) => ( // Mapea los registros de otras atenciones
-                                        <tr key={index}> {/* Clave única para cada fila */}
-                                            <td>{CamposOtrasAtenciones.FechaCambio}</td>
-                                            <td>{CamposOtrasAtenciones.ObservacionesUsuario}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                <table>
+                                    <thead>
+                                        <th>Fecha de registro</th>
+                                        <th>Observaciones del usuario</th>
+                                    </thead>
+                                    <tbody className='content-table-modal'>
+                                        {selectedSinOtherAtencionNodo.otrasAtenciones.map((CamposOtrasAtenciones, index) => ( // Mapea los registros de otras atenciones
+                                            <tr key={index}> {/* Clave única para cada fila */}
+                                                <td>{CamposOtrasAtenciones.FechaCambio}</td>
+                                                <td>{CamposOtrasAtenciones.ObservacionesUsuario}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)} {/* Coloca un mensaje en caso de estar sin registros */}
                         <div> {/* Contenedor de las imágenes */}
@@ -1221,20 +1221,20 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                     <div>
                                         <strong>Materiales necesarios:</strong>
                                         <div style={{ overflowX: 'auto', width: '100%' }}>
-                                        <table>
-                                            <thead>
-                                                <th>Material</th>
-                                                <th>Cantidad</th>
-                                            </thead>
-                                            <tbody className='content-table-modal'>
-                                                {selectedNodo.materiales.map((CamposMaterialesNecesarios, index) => ( // Mapea los materiales necesarios y los muestra
-                                                    <tr key={index}> {/* Clave única para cada fila */}
-                                                        <td>{CamposMaterialesNecesarios.Nombre}</td> {/* Coloca el nombre del material */}
-                                                        <td>{CamposMaterialesNecesarios.Necesarios}</td>  {/* Coloca la cantidad del material */}
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                            <table>
+                                                <thead>
+                                                    <th>Material</th>
+                                                    <th>Cantidad</th>
+                                                </thead>
+                                                <tbody className='content-table-modal'>
+                                                    {selectedNodo.materiales.map((CamposMaterialesNecesarios, index) => ( // Mapea los materiales necesarios y los muestra
+                                                        <tr key={index}> {/* Clave única para cada fila */}
+                                                            <td>{CamposMaterialesNecesarios.Nombre}</td> {/* Coloca el nombre del material */}
+                                                            <td>{CamposMaterialesNecesarios.Necesarios}</td>  {/* Coloca la cantidad del material */}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 ) || (<p style={{ color: 'grey' }}>No hay materiales necesarios</p>)} {/* Coloca un mensaje en caso de estar sin materiales utilizados */}
@@ -1243,20 +1243,20 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                     <div>
                                         <strong>Materiales utilizados:</strong>
                                         <div style={{ overflowX: 'auto', width: '100%' }}>
-                                        <table>
-                                            <thead>
-                                                <th>Material</th>
-                                                <th>Cantidad</th>
-                                            </thead>
-                                            <tbody className='content-table-modal'>
-                                                {selectedNodo.materiales.map((CamposMaterialesUtilizados, index) => (
-                                                    <tr key={index}> {/* Clave única para cada fila */}
-                                                        <td>{CamposMaterialesUtilizados.Nombre}</td> {/* Coloca el nombre del material */}
-                                                        <td>{CamposMaterialesUtilizados.Utilizados}</td>  {/* Coloca la cantidad del material */}
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                            <table>
+                                                <thead>
+                                                    <th>Material</th>
+                                                    <th>Cantidad</th>
+                                                </thead>
+                                                <tbody className='content-table-modal'>
+                                                    {selectedNodo.materiales.map((CamposMaterialesUtilizados, index) => (
+                                                        <tr key={index}> {/* Clave única para cada fila */}
+                                                            <td>{CamposMaterialesUtilizados.Nombre}</td> {/* Coloca el nombre del material */}
+                                                            <td>{CamposMaterialesUtilizados.Utilizados}</td>  {/* Coloca la cantidad del material */}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 ) || (<p style={{ color: 'grey' }}>No hay materiales Utilizados</p>)} {/* Coloca un mensaje en caso de estar sin materiales utilizados */}

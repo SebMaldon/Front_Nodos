@@ -226,55 +226,55 @@ const NodosSustitucion = () => {
             </div>
 
             <div style={{ overflowX: 'auto', width: '100%' }}>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Ubicación</th>
-                        <th>Unidad</th>
-                        <th>Categoría del cable</th>
-                        <th>Año de instalación</th>
-                        <th>Estado del cable</th>
-                        <th>Puerto</th>
-                        <th>Área</th>
-                        <th>Longitud</th>
-                        <th>IP del Switch</th>
-                        <th>Observaciones</th>
-                        <th>Faltantes</th>
-                        <th>M</th>
-                        <th>OA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredNodos.map((nodoData, index) => (
-                        <tr key={index}> {/* Clave única para cada fila */}
-                            <td
-                                onClick={() => handleDetailsClick(nodoData)} // Abre el modal con los detalles del nodo
-                                style={{ cursor: 'pointer' }}
-                            >{nodoData.Ubicacion}</td> {/* Muestra la ubicación del nodo */}
-                            <td>{nodoData.Unidad}</td> {/* Muestra la unidad del nodo */}
-                            <td>{nodoData.CategoriaCable}</td> {/* Muestra la categoría del cable */}
-                            <td>{nodoData.AnioInstalacion}</td> {/* Muestra el año de instalación */}
-                            <td>{nodoData.EstadoCable}</td> {/* Muestra el estado del cable */}
-                            <td>{nodoData.Puerto}</td> {/* Muestra el puerto */}
-                            <td>{nodoData.Area}</td> {/* Muestra el área */}
-                            <td>{nodoData.Longitud}</td> {/* Muestra la longitud del cable */}
-                            <td>{nodoData.IpSwitch}</td> {/* Muestra la IP del switch */}
-                            <td>{nodoData.Observaciones}</td> {/* Muestra las observaciones */}
-                            <td style={{ textAlign: 'center' }} >{nodoData.Nodos_faltantes ? nodoData.Nodos_faltantes : '0'}</td> {/* Muestra los nodos faltantes */}
-                            {/* Muestra el estado de atención del nodo con imagenes*/}
-                            <td onClick={() => handleAtencionClick(nodoData)}
-                                style={{ cursor: 'pointer', textAlign: 'center' }}>
-                                {nodoData.Atendido ? '✅' : ''}{nodoData.Atencion ? '⚠️' : ''} {/* Muestra un icono si requiere atención */}
-                            </td>
-                            {/* Muestra el estado de atención del nodo con imagenes*/}
-                            <td onClick={() => handleOtherAtencionClick(nodoData)}
-                                style={{ cursor: 'pointer', textAlign: 'center' }}>
-                                {nodoData.OtroAtendido ? '🟢' : ''}{nodoData.OtraAtencion ? '🔴' : ''} {/* Muestra un icono si requiere atención */}
-                            </td>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ubicación</th>
+                            <th>Unidad</th>
+                            <th>Categoría del cable</th>
+                            <th>Año de instalación</th>
+                            <th>Estado del cable</th>
+                            <th>Puerto</th>
+                            <th>Área</th>
+                            <th>Longitud</th>
+                            <th>IP del Switch</th>
+                            <th>Observaciones</th>
+                            <th>Faltantes</th>
+                            <th>M</th>
+                            <th>OA</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {filteredNodos.map((nodoData, index) => (
+                            <tr key={index}> {/* Clave única para cada fila */}
+                                <td
+                                    onClick={() => handleDetailsClick(nodoData)} // Abre el modal con los detalles del nodo
+                                    style={{ cursor: 'pointer' }}
+                                >{nodoData.Ubicacion}</td> {/* Muestra la ubicación del nodo */}
+                                <td>{nodoData.Unidad}</td> {/* Muestra la unidad del nodo */}
+                                <td>{nodoData.CategoriaCable}</td> {/* Muestra la categoría del cable */}
+                                <td>{nodoData.AnioInstalacion}</td> {/* Muestra el año de instalación */}
+                                <td>{nodoData.EstadoCable}</td> {/* Muestra el estado del cable */}
+                                <td>{nodoData.Puerto}</td> {/* Muestra el puerto */}
+                                <td>{nodoData.Area}</td> {/* Muestra el área */}
+                                <td>{nodoData.Longitud}</td> {/* Muestra la longitud del cable */}
+                                <td>{nodoData.IpSwitch}</td> {/* Muestra la IP del switch */}
+                                <td>{nodoData.Observaciones}</td> {/* Muestra las observaciones */}
+                                <td style={{ textAlign: 'center' }} >{nodoData.Nodos_faltantes ? nodoData.Nodos_faltantes : '0'}</td> {/* Muestra los nodos faltantes */}
+                                {/* Muestra el estado de atención del nodo con imagenes*/}
+                                <td onClick={() => handleAtencionClick(nodoData)}
+                                    style={{ cursor: 'pointer', textAlign: 'center' }}>
+                                    {nodoData.Atendido ? '✅' : ''}{nodoData.Atencion ? '⚠️' : ''} {/* Muestra un icono si requiere atención */}
+                                </td>
+                                {/* Muestra el estado de atención del nodo con imagenes*/}
+                                <td onClick={() => handleOtherAtencionClick(nodoData)}
+                                    style={{ cursor: 'pointer', textAlign: 'center' }}>
+                                    {nodoData.OtroAtendido ? '🟢' : ''}{nodoData.OtraAtencion ? '🔴' : ''} {/* Muestra un icono si requiere atención */}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
             <TablePagination
@@ -312,20 +312,20 @@ const NodosSustitucion = () => {
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedSinAtencionNodo.mantenimiento) && (
                             <div style={{ overflowX: 'auto', width: '100%' }}>
-                            <table>
-                                <thead>
-                                    <th>Fecha de registro</th>
-                                    <th>Observaciones del usuario</th>
-                                </thead>
-                                <tbody className='content-table-modal'>
-                                    {selectedSinAtencionNodo.mantenimiento.map((CamposMantenimiento, index) => (
-                                        <tr key={index}> {/* Clave única para cada fila */}
-                                            <td>{CamposMantenimiento.FechaCambio}</td> {/* Muestra la fecha de registro */}
-                                            <td>{CamposMantenimiento.ObservacionesUsuario}</td> {/* Muestra las observaciones del usuario */}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                <table>
+                                    <thead>
+                                        <th>Fecha de registro</th>
+                                        <th>Observaciones del usuario</th>
+                                    </thead>
+                                    <tbody className='content-table-modal'>
+                                        {selectedSinAtencionNodo.mantenimiento.map((CamposMantenimiento, index) => (
+                                            <tr key={index}> {/* Clave única para cada fila */}
+                                                <td>{CamposMantenimiento.FechaCambio}</td> {/* Muestra la fecha de registro */}
+                                                <td>{CamposMantenimiento.ObservacionesUsuario}</td> {/* Muestra las observaciones del usuario */}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)} {/* Coloca un mensaje en caso de estar sin registros */}
                         <div> {/* Contenedor de las imágenes */}
@@ -397,20 +397,20 @@ const NodosSustitucion = () => {
                         {/* Tabla con los registros de mantenimiento que sólo se muestra si hay registros en la BD */}
                         {!EstaVacio(selectedSinOtherAtencionNodo.mantenimiento) && (
                             <div style={{ overflowX: 'auto', width: '100%' }}>
-                            <table>
-                                <thead>
-                                    <th>Fecha de registro</th>
-                                    <th>Observaciones del usuario</th>
-                                </thead>
-                                <tbody className='content-table-modal'>
-                                    {selectedSinOtherAtencionNodo.otrasAtenciones.map((CamposOtrasAtenciones, index) => (
-                                        <tr key={index}>
-                                            <td>{CamposOtrasAtenciones.FechaCambio}</td>
-                                            <td>{CamposOtrasAtenciones.ObservacionesUsuario}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                <table>
+                                    <thead>
+                                        <th>Fecha de registro</th>
+                                        <th>Observaciones del usuario</th>
+                                    </thead>
+                                    <tbody className='content-table-modal'>
+                                        {selectedSinOtherAtencionNodo.otrasAtenciones.map((CamposOtrasAtenciones, index) => (
+                                            <tr key={index}>
+                                                <td>{CamposOtrasAtenciones.FechaCambio}</td>
+                                                <td>{CamposOtrasAtenciones.ObservacionesUsuario}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         ) || (<p style={{ color: 'grey' }}>No hay registros en la tabla</p>)}
                         <div> {/* Contenedor de las imágenes */}
@@ -476,7 +476,7 @@ const NodosSustitucion = () => {
                         <div> {/* Contenedor de las imágenes */}
                             <strong>Imágenes:</strong>
                             <br />
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {selectedNodo?.images && selectedNodo.images.length > 0 ? (
                                     selectedNodo.images.map((image, index) => {
                                         // Extraer el timestamp (últimos números antes de .png/.jpg)
@@ -524,20 +524,20 @@ const NodosSustitucion = () => {
                                 <div>
                                     <strong>Materiales necesarios:</strong>
                                     <div style={{ overflowX: 'auto', width: '100%' }}>
-                                    <table>
-                                        <thead>
-                                            <th>Material</th>
-                                            <th>Cantidad</th>
-                                        </thead>
-                                        <tbody className='content-table-modal'>
-                                            {selectedNodo.materiales.map((CamposMaterialesNecesarios, index) => (
-                                                <tr key={index}> {/* Clave única para cada fila */}
-                                                    <td>{CamposMaterialesNecesarios.Nombre}</td> {/* Coloca el nombre del material */}
-                                                    <td>{CamposMaterialesNecesarios.Necesarios}</td>  {/* Coloca la cantidad del material */}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                        <table>
+                                            <thead>
+                                                <th>Material</th>
+                                                <th>Cantidad</th>
+                                            </thead>
+                                            <tbody className='content-table-modal'>
+                                                {selectedNodo.materiales.map((CamposMaterialesNecesarios, index) => (
+                                                    <tr key={index}> {/* Clave única para cada fila */}
+                                                        <td>{CamposMaterialesNecesarios.Nombre}</td> {/* Coloca el nombre del material */}
+                                                        <td>{CamposMaterialesNecesarios.Necesarios}</td>  {/* Coloca la cantidad del material */}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             ) || (<p style={{ color: 'grey' }}>No hay materiales necesarios</p>)} {/* Coloca un mensaje en caso de estar sin materiales utilizados */}
@@ -546,20 +546,20 @@ const NodosSustitucion = () => {
                                 <div>
                                     <strong>Materiales utilizados:</strong>
                                     <div style={{ overflowX: 'auto', width: '100%' }}>
-                                    <table>
-                                        <thead>
-                                            <th>Material</th>
-                                            <th>Cantidad</th>
-                                        </thead>
-                                        <tbody className='content-table-modal'>
-                                            {selectedNodo.materiales.map((CamposMaterialesUtilizados, index) => (
-                                                <tr key={index}> {/* Clave única para cada fila */}
-                                                    <td>{CamposMaterialesUtilizados.Nombre}</td> {/* Coloca el nombre del material */}
-                                                    <td>{CamposMaterialesUtilizados.Utilizados}</td>  {/* Coloca la cantidad del material */}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                        <table>
+                                            <thead>
+                                                <th>Material</th>
+                                                <th>Cantidad</th>
+                                            </thead>
+                                            <tbody className='content-table-modal'>
+                                                {selectedNodo.materiales.map((CamposMaterialesUtilizados, index) => (
+                                                    <tr key={index}> {/* Clave única para cada fila */}
+                                                        <td>{CamposMaterialesUtilizados.Nombre}</td> {/* Coloca el nombre del material */}
+                                                        <td>{CamposMaterialesUtilizados.Utilizados}</td>  {/* Coloca la cantidad del material */}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             ) || (<p style={{ color: 'grey' }}>No hay materiales Utilizados</p>)} {/* Coloca un mensaje en caso de estar sin materiales utilizados */}

@@ -51,6 +51,14 @@ const tablaRegistros = () => {
     const [page, setPage] = useState(0); // Estado para la página actual
     const [rowsPerPage, setRowsPerPage] = useState(10); // Estado para la cantidad de registros por página
 
+    // Paginación para modal de imágenes de nodos
+    const [imgNodosPage, setImgNodosPage] = useState(0);
+    const [imgNodosPerPage, setImgNodosPerPage] = useState(12);
+
+    // Paginación para modal de imágenes MDF/IDF
+    const [imgMdfPage, setImgMdfPage] = useState(0);
+    const [imgMdfPerPage, setImgMdfPerPage] = useState(12);
+
     // Función para abrir el modal con los detalles del nodo
     const handleDetailsClick = async (nodoData) => {
         try {
@@ -575,13 +583,16 @@ const tablaRegistros = () => {
     // Función para abrir el modal de todas las imágenes de la unidad
     const handleImagenesUnidadNodos = async () => {
         try {
-            // Obtener las imágenes solventadas desde el backend
-            const response = await axios.get(`http://localhost:5000/api/nodos/imagenes-nodos/${filtros.unidad}`);
+            // Obtener TODAS las imágenes (limit alto para traer todo y paginar en cliente)
+            const response = await axios.get(`http://localhost:5000/api/nodos/imagenes-nodos/${filtros.unidad}`, {
+                params: { page: 1, limit: 9999 }
+            });
 
             const ImagenesNodos = response.data;
 
             // Actualizar el nodo con las imágenes solventadas
             setSelectedImagesUnidadNodos(ImagenesNodos);
+            setImgNodosPage(0); // Resetear a primera página
         } catch (error) {
             console.error('Error al obtener los datos:', error);
         }
@@ -590,9 +601,12 @@ const tablaRegistros = () => {
     // Función para abrir el modal de todas las imágenes de la unidad (MDF IDF)
     const handleImagenesUnidad = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/nodos/imagenes/${filtros.unidad}`);
+            const response = await axios.get(`http://localhost:5000/api/nodos/imagenes/${filtros.unidad}`, {
+                params: { page: 1, limit: 9999 }
+            });
             const ImagenesNodos = response.data;
             setSelectedImagesUnidad(ImagenesNodos);
+            setImgMdfPage(0); // Resetear a primera página
             return ImagenesNodos; // retorna los datos para uso inmediato
         } catch (error) {
             console.error('Error al obtener los datos:', error);
@@ -1184,6 +1198,8 @@ const tablaRegistros = () => {
                                                     src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
                                                     onClick={() => handleImageClick(image.ImagenURL)} // Mostrar la imagen en grande
                                                 />
@@ -1267,6 +1283,8 @@ const tablaRegistros = () => {
                                                     src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
                                                     onClick={() => handleImageClick(image.ImagenURL)} // Mostrar la imagen en grande
                                                 />
@@ -1330,6 +1348,8 @@ const tablaRegistros = () => {
                                                     src={'http://localhost:5000' + image.ImagenURL}
                                                     alt={`Imagen ${index + 1}`}
                                                     width="200"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     style={{ margin: '5px', cursor: 'pointer' }}
                                                     onClick={() => handleImageClick(image.ImagenURL)}
                                                 />
@@ -1389,95 +1409,145 @@ const tablaRegistros = () => {
                 </div>
             )}
 
-            {selectedImagesUnidadNodos && (
-                <div className="modal-overlay" onClick={() => setSelectedImagesUnidadNodos(null)}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="image-modal-title">Imágenes de los nodos:</h3>
+            {selectedImagesUnidadNodos && (() => {
+                const allNodosImages = selectedImagesUnidadNodos.nodosImages || [];
+                const totalNodosImages = allNodosImages.length;
+                const nodosImagesPage = allNodosImages.slice(
+                    imgNodosPage * imgNodosPerPage,
+                    imgNodosPage * imgNodosPerPage + imgNodosPerPage
+                );
+                return (
+                    <div className="modal-overlay" onClick={() => setSelectedImagesUnidadNodos(null)}>
+                        <div className="modal" onClick={(e) => e.stopPropagation()}>
+                            <h3 className="image-modal-title">Imágenes de los nodos:</h3>
 
-                        {selectedImagesUnidadNodos.nodosImages.length > 0 ? (
-                            <div className="image-grid-container">
-                                {selectedImagesUnidadNodos.nodosImages.map((image, index) => {
-                                    const fileName = image.ImagenURL.split('/').pop();
-                                    const timestampMatch = fileName.match(/(\d+)\.\w+$/);
-                                    const timestamp = timestampMatch ? parseInt(timestampMatch[1], 10) : null;
-                                    const formattedDate = timestamp && new Date(timestamp).getFullYear() >= 2010
-                                        ? new Date(timestamp).toLocaleDateString('es-MX', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                        })
-                                        : 'Fecha no disponible';
+                            {totalNodosImages > 0 ? (
+                                <>
+                                    <div className="image-grid-container">
+                                        {nodosImagesPage.map((image, index) => {
+                                            const fileName = image.ImagenURL.split('/').pop();
+                                            const timestampMatch = fileName.match(/(\d+)\.\w+$/);
+                                            const timestamp = timestampMatch ? parseInt(timestampMatch[1], 10) : null;
+                                            const formattedDate = timestamp && new Date(timestamp).getFullYear() >= 2010
+                                                ? new Date(timestamp).toLocaleDateString('es-MX', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric',
+                                                })
+                                                : 'Fecha no disponible';
 
-                                    return (
-                                        <div className="image-card" key={index}>
-                                            <div className="image-info">
-                                                <div className="image-name">{image.Ubicacion}</div>
-                                                <div className={image.ImagenURL.toLowerCase().includes('solventado')
-                                                    ? 'image-status-solventado'
-                                                    : 'image-status-general'}>
-                                                    {image.ImagenURL.toLowerCase().includes('solventado')
-                                                        ? '(Dentro de Solventado)'
-                                                        : '(General)'}
+                                            return (
+                                                <div className="image-card" key={imgNodosPage * imgNodosPerPage + index}>
+                                                    <div className="image-info">
+                                                        <div className="image-name">{image.Ubicacion}</div>
+                                                        <div className={image.ImagenURL.toLowerCase().includes('solventado')
+                                                            ? 'image-status-solventado'
+                                                            : 'image-status-general'}>
+                                                            {image.ImagenURL.toLowerCase().includes('solventado')
+                                                                ? '(Dentro de Solventado)'
+                                                                : '(General)'}
+                                                        </div>
+                                                        <div className="image-date">{formattedDate}</div>
+                                                    </div>
+                                                    <img
+                                                        src={'http://localhost:5000' + image.ImagenURL}
+                                                        alt={`Imagen ${imgNodosPage * imgNodosPerPage + index + 1}`}
+                                                        className="thumbnail-image"
+                                                        loading="lazy"
+                                                        decoding="async"
+                                                        onClick={() => handleImageClick(image.ImagenURL)}
+                                                    />
                                                 </div>
-                                                <div className="image-date">{formattedDate}</div>
-                                            </div>
-                                            <img
-                                                src={'http://localhost:5000' + image.ImagenURL}
-                                                alt={`Imagen ${index + 1}`}
-                                                className="thumbnail-image"
-                                                onClick={() => handleImageClick(image.ImagenURL)}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <p className="no-images-message">No hay imágenes de los nodos disponibles.</p>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {selectedImagesUnidad && (
-                <div className="modal-overlay" onClick={() => setSelectedImagesUnidad(null)}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                            <h3 className="image-modal-title" style={{ margin: 0 }}>Imágenes de los MDF e IDF:</h3>
-                            <Tooltip title="Añadir Imagen">
-                                <Button variant="contained" color="primary" onClick={() => {
-                                    setMdfIdfFormData(prev => ({ ...prev, unidadForm: filtros.unidad }));
-                                    handleFormUnidadChange(filtros.unidad);
-                                    setShowMdfIdfForm(true);
-                                }}>
-                                    <i className="fas fa-plus" style={{ marginRight: '5px' }}></i>
-                                    <span className="hide-on-mobile">Añadir Imagen</span>
-                                </Button>
-                            </Tooltip>
-                        </div>
-
-                        {selectedImagesUnidad.MDF_IDF_Images.length > 0 ? (
-                            <div className="image-grid-container">
-                                {selectedImagesUnidad.MDF_IDF_Images.map((image, index) => (
-                                    <div className="image-card" key={index}>
-                                        <div className="image-info">
-                                            <div className="image-name">{image.Nombre}</div>
-                                            <div className="image-date">{image.FechaCaptura}</div>
-                                        </div>
-                                        <img
-                                            src={'http://localhost:5000' + image.ImagenURL + '?v=' + imgVersion}
-                                            alt={`Imagen ${index + 1}`}
-                                            className="thumbnail-image"
-                                            onClick={() => setSelectedImage({ ...image, isMdfIdf: true })}
-                                        />
+                                            );
+                                        })}
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="no-images-message">No hay imágenes de los MDF e IDF disponibles.</p>
-                        )}
+                                    <TablePagination
+                                        component="div"
+                                        count={totalNodosImages}
+                                        page={imgNodosPage}
+                                        onPageChange={(event, newPage) => setImgNodosPage(newPage)}
+                                        rowsPerPage={imgNodosPerPage}
+                                        onRowsPerPageChange={(event) => {
+                                            setImgNodosPerPage(parseInt(event.target.value, 10));
+                                            setImgNodosPage(0);
+                                        }}
+                                        rowsPerPageOptions={[6, 12, 24, 48]}
+                                        labelRowsPerPage="Imágenes por página"
+                                    />
+                                </>
+                            ) : (
+                                <p className="no-images-message">No hay imágenes de los nodos disponibles.</p>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
+
+            {selectedImagesUnidad && (() => {
+                const allMdfImages = selectedImagesUnidad.MDF_IDF_Images || [];
+                const totalMdfImages = allMdfImages.length;
+                const mdfImagesPage = allMdfImages.slice(
+                    imgMdfPage * imgMdfPerPage,
+                    imgMdfPage * imgMdfPerPage + imgMdfPerPage
+                );
+                return (
+                    <div className="modal-overlay" onClick={() => setSelectedImagesUnidad(null)}>
+                        <div className="modal" onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                <h3 className="image-modal-title" style={{ margin: 0 }}>Imágenes de los MDF e IDF:</h3>
+                                <Tooltip title="Añadir Imagen">
+                                    <Button variant="contained" color="primary" onClick={() => {
+                                        setMdfIdfFormData(prev => ({ ...prev, unidadForm: filtros.unidad }));
+                                        handleFormUnidadChange(filtros.unidad);
+                                        setShowMdfIdfForm(true);
+                                    }}>
+                                        <i className="fas fa-plus" style={{ marginRight: '5px' }}></i>
+                                        <span className="hide-on-mobile">Añadir Imagen</span>
+                                    </Button>
+                                </Tooltip>
+                            </div>
+
+                            {totalMdfImages > 0 ? (
+                                <>
+                                    <div className="image-grid-container">
+                                        {mdfImagesPage.map((image, index) => (
+                                            <div className="image-card" key={imgMdfPage * imgMdfPerPage + index}>
+                                                <div className="image-info">
+                                                    <div className="image-name">{image.Nombre}</div>
+                                                    <div className="image-date">{image.FechaCaptura}</div>
+                                                </div>
+                                                <img
+                                                    src={'http://localhost:5000' + image.ImagenURL + '?v=' + imgVersion}
+                                                    alt={`Imagen ${imgMdfPage * imgMdfPerPage + index + 1}`}
+                                                    className="thumbnail-image"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    onClick={() => setSelectedImage({ ...image, isMdfIdf: true })}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <TablePagination
+                                        component="div"
+                                        count={totalMdfImages}
+                                        page={imgMdfPage}
+                                        onPageChange={(event, newPage) => setImgMdfPage(newPage)}
+                                        rowsPerPage={imgMdfPerPage}
+                                        onRowsPerPageChange={(event) => {
+                                            setImgMdfPerPage(parseInt(event.target.value, 10));
+                                            setImgMdfPage(0);
+                                        }}
+                                        rowsPerPageOptions={[6, 12, 24, 48]}
+                                        labelRowsPerPage="Imágenes por página"
+                                    />
+                                </>
+                            ) : (
+                                <p className="no-images-message">No hay imágenes de los MDF e IDF disponibles.</p>
+                            )}
+                        </div>
+                    </div>
+                );
+            })()}
 
 
             {/* Modal para mostrar la imagen en grande */}
@@ -1619,6 +1689,8 @@ const tablaRegistros = () => {
                                                             <img
                                                                 src={'http://localhost:5000' + img.ImagenURL + '?v=' + imgVersion}
                                                                 alt={img.Nombre || 'Imagen'}
+                                                                loading="lazy"
+                                                                decoding="async"
                                                                 style={{ width: '120px', height: '120px', objectFit: 'cover', border: '1px solid #ccc', borderRadius: '6px', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}
                                                             />
                                                             {img.Nombre && (
@@ -1666,6 +1738,8 @@ const tablaRegistros = () => {
                                                             <img
                                                                 src={'http://localhost:5000' + img.ImagenURL + '?v=' + imgVersion}
                                                                 alt={img.Nombre || 'Imagen'}
+                                                                loading="lazy"
+                                                                decoding="async"
                                                                 style={{ width: '120px', height: '120px', objectFit: 'cover', border: img.Id === mdfIdfFormData.id ? '3px solid var(--imss-green)' : '1px solid #ccc', borderRadius: '6px', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}
                                                             />
                                                             {img.Nombre && (
