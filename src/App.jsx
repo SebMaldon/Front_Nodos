@@ -1,17 +1,27 @@
-import { useState, useEffect } from 'react'; // Importar las funciones useState y useEffect
+import { useState, useEffect, useContext } from 'react'; // Importar las funciones useState y useEffect
 import axios from 'axios'; // Importar axios para realizar peticiones HTTP
-import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from 'react-router-dom'; // Importar React Router
+import { BrowserRouter as Router, Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'; // Importar React Router
 import './App.css'; // Importar el archivo de estilos
 import NodeForm from './components/NodeFrom'; // Importar el componente NodeForm
 import NodeTable from './components/NodeTable'; // Importar el componente NodeTable
 import TablaRegistros from './pages/tablaRegistros'; // Importar la página con la tabla de registros
 import NodosSustitucion from './pages/NodosSustitucion'; // Importar la página con la tabla de los nodos candidatos a sustitución
 import PantallaInicio from './pages/inicio';
+import Login from './pages/Login';
+import { AuthProvider, AuthContext } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Navigation fuera de App para evitar re-renders y poder cerrar el menú correctamente
 function Navigation({ mobileMenuOpen, setMobileMenuOpen }) {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { user, logoutUser } = useContext(AuthContext);
     const closeMenu = () => setMobileMenuOpen(false);
+
+    const handleLogout = () => {
+        logoutUser();
+        navigate('/login');
+    };
 
     return (
         <>
@@ -45,26 +55,35 @@ function Navigation({ mobileMenuOpen, setMobileMenuOpen }) {
 
                     <nav className={`header-nav ${mobileMenuOpen ? 'open' : ''}`}>
                         <ul className="nav-links">
-                            <li className={location.pathname === '/' ? 'active' : ''}>
-                                <NavLink to="/" exact onClick={closeMenu}>
-                                    <i className="fas fa-home"></i> Inicio
-                                </NavLink>
-                            </li>
-                            <li className={location.pathname.includes('/catalogo-nodos') ? 'active' : ''}>
-                                <NavLink to="/catalogo-nodos" onClick={closeMenu}>
-                                    <i className="fas fa-list"></i> Catálogo
-                                </NavLink>
-                            </li>
-                            <li className={location.pathname.includes('/gestion-nodos') ? 'active' : ''}>
-                                <NavLink to="/gestion-nodos" onClick={closeMenu}>
-                                    <i className="fas fa-cog"></i> Gestión
-                                </NavLink>
-                            </li>
-                            <li className={location.pathname.includes('/catalogo-prioritarios') ? 'active' : ''}>
-                                <NavLink to="/catalogo-prioritarios" onClick={closeMenu}>
-                                    <i className="fas fa-exclamation-triangle"></i> Prioritarios
-                                </NavLink>
-                            </li>
+                            {user && (
+                                <>
+                                    <li className={location.pathname === '/' ? 'active' : ''}>
+                                        <NavLink to="/" exact onClick={closeMenu}>
+                                            <i className="fas fa-home"></i> Inicio
+                                        </NavLink>
+                                    </li>
+                                    <li className={location.pathname.includes('/catalogo-nodos') ? 'active' : ''}>
+                                        <NavLink to="/catalogo-nodos" onClick={closeMenu}>
+                                            <i className="fas fa-list"></i> Catálogo
+                                        </NavLink>
+                                    </li>
+                                    <li className={location.pathname.includes('/gestion-nodos') ? 'active' : ''}>
+                                        <NavLink to="/gestion-nodos" onClick={closeMenu}>
+                                            <i className="fas fa-cog"></i> Gestión
+                                        </NavLink>
+                                    </li>
+                                    <li className={location.pathname.includes('/catalogo-prioritarios') ? 'active' : ''}>
+                                        <NavLink to="/catalogo-prioritarios" onClick={closeMenu}>
+                                            <i className="fas fa-exclamation-triangle"></i> Prioritarios
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <button onClick={handleLogout} className="logout-button" style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', padding: '10px 15px' }}>
+                                            <i className="fas fa-sign-out-alt"></i> Salir
+                                        </button>
+                                    </li>
+                                </>
+                            )}
                         </ul>
                     </nav>
                 </div>
@@ -109,70 +128,81 @@ function App() {
     };
 
     return (
-        <Router>
-            <div className="App">
-                <Navigation mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
+        <AuthProvider>
+            <Router>
+                <div className="App">
+                    <Navigation mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
 
-                <main className="app-content">
-                    <Routes>
-                        <Route
-                            path="/gestion-nodos"
-                            element={
-                                <div className="page-container">
-                                    <h1 className="page-title">Gestión y Registro de Nodos</h1>
-                                    <div className="content-container">
-                                        <div className="form-container">
-                                            <NodeForm onAddNodo={handleAddNodo} />
+                    <main className="app-content">
+                        <Routes>
+                            <Route path="/login" element={<Login />} />
+                            <Route
+                                path="/gestion-nodos"
+                                element={
+                                    <ProtectedRoute>
+                                        <div className="page-container">
+                                            <h1 className="page-title">Gestión y Registro de Nodos</h1>
+                                            <div className="content-container">
+                                                <div className="form-container">
+                                                    <NodeForm onAddNodo={handleAddNodo} />
+                                                </div>
+                                                <div className="table-container">
+                                                    <NodeTable
+                                                        nodos={nodos}
+                                                        fetchNodos={fetchNodos}
+                                                        totalRegistrosApp={totalRegistrosApp}
+                                                        pageApp={page}
+                                                        setPageApp={setPage}
+                                                        rowsPerPageApp={rowsPerPage}
+                                                        setRowsPerPageApp={setRowsPerPage}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="table-container">
-                                            <NodeTable
-                                                nodos={nodos}
-                                                fetchNodos={fetchNodos}
-                                                totalRegistrosApp={totalRegistrosApp}
-                                                pageApp={page}
-                                                setPageApp={setPage}
-                                                rowsPerPageApp={rowsPerPage}
-                                                setRowsPerPageApp={setRowsPerPage}
-                                            />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/catalogo-prioritarios"
+                                element={
+                                    <ProtectedRoute>
+                                        <div className="page-container">
+                                            <h1 className="page-title">Nodos Prioritarios</h1>
+                                            <div className="table-container">
+                                                <NodosSustitucion />
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            }
-                        />
-                        <Route
-                            path="/catalogo-prioritarios"
-                            element={
-                                <div className="page-container">
-                                    <h1 className="page-title">Nodos Prioritarios</h1>
-                                    <div className="table-container">
-                                        <NodosSustitucion />
-                                    </div>
-                                </div>
-                            }
-                        />
-                        <Route
-                            path="/catalogo-nodos"
-                            element={
-                                <div className="page-container">
-                                    <h1 className="page-title">Catálogo de Nodos</h1>
-                                    <div className="table-container">
-                                        <TablaRegistros />
-                                    </div>
-                                </div>
-                            }
-                        />
-                        <Route
-                            path="/"
-                            element={
-                                <div className="page-container">
-                                    <PantallaInicio />
-                                </div>
-                            }
-                        />
-                    </Routes>
-                </main>
-            </div>
-        </Router>
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/catalogo-nodos"
+                                element={
+                                    <ProtectedRoute>
+                                        <div className="page-container">
+                                            <h1 className="page-title">Catálogo de Nodos</h1>
+                                            <div className="table-container">
+                                                <TablaRegistros />
+                                            </div>
+                                        </div>
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/"
+                                element={
+                                    <ProtectedRoute>
+                                        <div className="page-container">
+                                            <PantallaInicio />
+                                        </div>
+                                    </ProtectedRoute>
+                                }
+                            />
+                        </Routes>
+                    </main>
+                </div>
+            </Router>
+        </AuthProvider>
     );
 }
 
