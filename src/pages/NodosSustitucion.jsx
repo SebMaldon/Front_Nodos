@@ -45,7 +45,7 @@ const NodosSustitucion = () => {
     // Función para abrir el modal con los detalles del nodo
     const handleDetailsClick = async (nodoData) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`); // Llama a la API para obtener los detalles completos del nodo
+            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`); // Llama a la API para obtener los detalles completos del nodo
             setSelectedNodo(response.data); // Guarda los detalles completos en el estado
         } catch (error) {
             console.error('Error al obtener los detalles del nodo:', error);
@@ -55,7 +55,7 @@ const NodosSustitucion = () => {
 
     // Función para mostrar la imagen en grande
     const handleImageClick = (imageUrl) => {
-        setSelectedImage('http://localhost:5000' + imageUrl); // Guarda la imagen seleccionada en el estado
+        setSelectedImage('http://localhost:5090' + imageUrl); // Guarda la imagen seleccionada en el estado
     };
 
     // Función para obtener los registros desde el backend
@@ -98,7 +98,7 @@ const NodosSustitucion = () => {
             delete params.tipoAtencion;
 
             // Hacer la solicitud a la API con los filtros modificados
-            const response = await axios.get('http://localhost:5000/api/nodos/candidatos', {
+            const response = await axios.get('http://localhost:5090/api/nodos/candidatos', {
                 params: { ...params, page: page + 1, limit: rowsPerPage },
             });
 
@@ -118,7 +118,7 @@ const NodosSustitucion = () => {
     useEffect(() => {
         const fetchUnidades = async () => { // Función para obtener las unidades
             try {
-                const response = await axios.get('http://localhost:5000/api/nodos/unidades'); // Hacer una petición GET a la API
+                const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
                 setUnidades(response.data); // Almacenar las unidades en el estado
             } catch (error) {
                 console.error('Error al obtener las unidades:', error);
@@ -137,7 +137,7 @@ const NodosSustitucion = () => {
     const handleAtencionClick = async (nodoData) => {
         try {
             // Obtener las imágenes solventadas desde el backend
-            const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`);
+            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
             const Datos = response.data;
 
             // Actualizar el nodo con las imágenes solventadas
@@ -151,7 +151,7 @@ const NodosSustitucion = () => {
     const handleOtherAtencionClick = async (nodoData) => {
         try {
             // Obtener las imágenes solventadas desde el backend
-            const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`);
+            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
             const Datos = response.data;
 
             // Actualizar el nodo con las imágenes solventadas
@@ -355,7 +355,7 @@ const NodosSustitucion = () => {
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
+                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -440,7 +440,7 @@ const NodosSustitucion = () => {
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
+                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -503,7 +503,7 @@ const NodosSustitucion = () => {
                                                     {formattedDate}
                                                 </div>
                                                 <img
-                                                    src={'http://localhost:5000' + image.ImagenURL}
+                                                    src={'http://localhost:5090' + image.ImagenURL}
                                                     alt={`Imagen ${index + 1}`}
                                                     width="200"
                                                     style={{ margin: '5px', cursor: 'pointer' }}

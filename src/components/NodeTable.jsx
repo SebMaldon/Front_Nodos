@@ -37,6 +37,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         atendido: '',
     });
     const [newImageFiles, setNewImageFiles] = useState([]); // Estado para las nuevas imágenes
+    const [newImageFilesAtencion, setNewImageFilesAtencion] = useState([]); // Estado para las nuevas imágenes de atención
     const [showObservacionesModal, setShowObservacionesModal] = useState(false); // Estado para mostrar la modal de observaciones en la modal de edición
     const [showObservacionesModalTable, setShowObservacionesModalTable] = useState(false); // Estado para mostrar la modal de observaciones en la tabla
     const [showObservacionesModalParcialTable, setShowObservacionesModalParcialTable] = useState(false); // Estado para mostrar la modal de observaciones en la tabla
@@ -134,7 +135,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
             delete params.tipoAtencion;
 
             // Hacer la solicitud a la API con los filtros modificados y paginación
-            const response = await axios.get('http://localhost:5000/api/nodos', {
+            const response = await axios.get('http://localhost:5090/api/nodos', {
                 params: { ...params, page: pageNode + 1, limit: rowsPerPageNode },
             });
 
@@ -148,7 +149,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
     };
     const fetchUOtrosNodos = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/nodos/unidades'); // Hacer una petición GET a la API
+            const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
 
             setUnidades(response.data); // Almacenar las unidades en el estado
         } catch (error) {
@@ -160,7 +161,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
     useEffect(() => {
         const fetchUnidades = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/nodos/unidades'); // Hacer una petición GET a la API
+                const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
 
                 setUnidades(response.data); // Almacenar las unidades en el estado
             } catch (error) {
@@ -173,7 +174,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
     // Obtener los materiales al cargar el componente
     const fetchMateriales = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/nodos/materiales'); // Hacer una petición GET a la API
+            const response = await axios.get('http://localhost:5090/api/nodos/materiales'); // Hacer una petición GET a la API
 
             setMateriales(response.data); // Almacenar los materiales en el estado
         } catch (error) {
@@ -184,7 +185,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
     // Función para abrir el modal con los detalles del nodo
     const handleDetailsClick = async (nodoData) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`); // Llama a la API para obtener los detalles completos del nodo
+            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`); // Llama a la API para obtener los detalles completos del nodo
             setSelectedNodo(response.data); // Guarda los detalles completos en el estado
         } catch (error) {
             console.error('Error al obtener los detalles del nodo:', error);
@@ -202,7 +203,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         if (nodoData.Atencion == true) { // Si el nodo requiere atención
             try {
                 // Obtener las imágenes solventadas desde el backend
-                const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`);
+                const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
                 const Datos = response.data;
 
                 // Actualizar el nodo con las imágenes solventadas
@@ -213,7 +214,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         } else { // Si el nodo no requiere atención
             try {
                 // Obtener las imágenes solventadas desde el backend
-                const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`);
+                const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
                 const Datos = response.data;
 
                 // Actualizar el nodo con las imágenes solventadas
@@ -229,7 +230,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         if (nodoData.OtraAtencion == true) { // Si el nodo requiere atención
             try {
                 // Obtener las imágenes solventadas desde el backend
-                const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`);
+                const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
                 const Datos = response.data;
 
                 // Actualizar el nodo con las imágenes solventadas
@@ -240,7 +241,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         } else { // Si el nodo no requiere atención
             try {
                 // Obtener las imágenes solventadas desde el backend
-                const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`);
+                const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
                 const Datos = response.data;
 
                 // Actualizar el nodo con las imágenes solventadas
@@ -284,6 +285,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         setShowObservacionesModalParcialTable(null); // Cierra la modal
         setShowObservacionesModal(null); // Cierra la modal
         setNewImageFiles([]); // Vaciar las imágenes
+        setNewImageFilesAtencion([]); // Vaciar las imágenes de atención
     };
 
     // Función para manejar cambios en el formulario de edición
@@ -347,7 +349,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
 
             // Enviar los datos al backend
             const response = await axios.put(
-                `http://localhost:5000/api/nodos/${nodoToEdit.Id}`, // URL de la API para actualizar el nodo
+                `http://localhost:5090/api/nodos/${nodoToEdit.Id}`, // URL de la API para actualizar el nodo
                 formDataToSend, // Datos a enviar
                 {
                     headers: { // Cabeceras de la petición
@@ -408,7 +410,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
 
             // Enviar los datos al backend
             const response = await axios.put(
-                `http://localhost:5000/api/nodos/${nodoToEdit.Id}`, // URL de la API para actualizar el nodo
+                `http://localhost:5090/api/nodos/${nodoToEdit.Id}`, // URL de la API para actualizar el nodo
                 formDataToSend, // Datos a enviar
                 {
                     headers: { // Cabeceras de la petición
@@ -454,7 +456,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
     // Función para eliminar el nodo
     const handleConfirmDelete = async () => {
         try {
-            await axios.delete(`http://localhost:5000/api/nodos/${nodoToDelete.Id}`); // URL de la API para eliminar el nodo
+            await axios.delete(`http://localhost:5090/api/nodos/${nodoToDelete.Id}`); // URL de la API para eliminar el nodo
             fetchNewNodos(); // Actualizar la lista de nodos
             alert('Nodo eliminado exitosamente');
             handleCloseModal(); // Cerrar el modal
@@ -466,13 +468,13 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
 
     // Función para mostrar la imagen en grande
     const handleImageClick = (imageUrl) => {
-        setSelectedImage('http://localhost:5000' + imageUrl); // Guarda la imagen seleccionada en el estado
+        setSelectedImage('http://localhost:5090' + imageUrl); // Guarda la imagen seleccionada en el estado
     };
 
     // Función para abrir el modal de edición
     const handleEditClick = async (nodoData) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`); // Obtener los detalles completos del nodo
+            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`); // Obtener los detalles completos del nodo
             setNodoToEdit(nodoData); // Guardar el nodo a editar en el estado
             setEditFormData({
                 ...nodoData, // Llenar el formulario con los datos actuales del nodo
@@ -491,7 +493,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         if (!window.confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/nodos/images/${imageId}`);
+            await axios.delete(`http://localhost:5090/api/nodos/images/${imageId}`);
 
             // Versión segura que verifica la existencia de selectedNodo e images
             setSelectedNodo(prevState => {
@@ -540,10 +542,10 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
     const handleOpenMaterialesModal = async () => {
         try {
             // Obtener todos los materiales disponibles
-            const materialesResponse = await axios.get('http://localhost:5000/api/nodos/materiales');
+            const materialesResponse = await axios.get('http://localhost:5090/api/nodos/materiales');
             const todosMateriales = materialesResponse.data;
             // Obtener materiales específicos del nodo (si existen)
-            const nodoMaterialesResponse = await axios.get(`http://localhost:5000/api/nodos/${nodoToEdit.Id}`);
+            const nodoMaterialesResponse = await axios.get(`http://localhost:5090/api/nodos/${nodoToEdit.Id}`);
             const materialesDelNodo = nodoMaterialesResponse.data.materiales;
             // Combinar ambos conjuntos de datos
             const materialesCombinados = todosMateriales.map(material => {
@@ -619,7 +621,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
 
             // Enviar los cambios al backend
             const response = await axios.put(
-                `http://localhost:5000/api/nodos/materiales/${nodoToEdit.Id}`,
+                `http://localhost:5090/api/nodos/materiales/${nodoToEdit.Id}`,
                 { materiales: materialesAEnviar }
             );
             if (response.data.success) {
@@ -689,7 +691,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
             <div className="acciones-globales" style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 <Button
                     onClick={() => {
-                        const node = nodos.find(n => n.Id === selectedRowId);
+                        const node = datosAMostrar.find(n => n.Id === selectedRowId);
                         if (node) handleDetailsClick(node);
                     }}
                     variant='contained'
@@ -701,7 +703,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                 </Button>
                 <Button
                     onClick={() => {
-                        const node = nodos.find(n => n.Id === selectedRowId);
+                        const node = datosAMostrar.find(n => n.Id === selectedRowId);
                         if (node) handleEditClick(node);
                     }}
                     variant='contained'
@@ -714,7 +716,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                 </Button>
                 <Button
                     onClick={() => {
-                        const node = nodos.find(n => n.Id === selectedRowId);
+                        const node = datosAMostrar.find(n => n.Id === selectedRowId);
                         if (node) handleDeleteClick(node);
                     }}
                     variant='contained'
@@ -895,7 +897,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
+                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -982,7 +984,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
+                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -1067,7 +1069,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
+                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -1154,7 +1156,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
+                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -1295,7 +1297,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                                     {formattedDate}
                                                 </div>
                                                 <img
-                                                    src={'http://localhost:5000' + image.ImagenURL}
+                                                    src={'http://localhost:5090' + image.ImagenURL}
                                                     alt={`Imagen ${index + 1}`}
                                                     width="200"
                                                     style={{ margin: '5px', cursor: 'pointer' }}
@@ -1558,7 +1560,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                                         {formattedDate}
                                                     </div>
                                                     <img
-                                                        src={'http://localhost:5000' + img.ImagenURL}
+                                                        src={'http://localhost:5090' + img.ImagenURL}
                                                         alt={`Imagen ${index + 1}`}
                                                         className="image-thumbnail"
                                                     />
@@ -1621,7 +1623,15 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                 type="file" // Tipo de campo
                                 name="newImagesAtencion" // Nombre del campo
                                 multiple // Permitir la selección de múltiples archivos
-                                onChange={handleFileChange} // Guardar las nuevas imágenes en el estado
+                                onChange={(e) => {
+                                    const files = Array.from(e.target.files);
+                                    const uniqueFiles = files.reduce((acc, file) => {
+                                        const isDuplicate = acc.some(f => f.name === file.name && f.size === file.size);
+                                        if (!isDuplicate) acc.push(file);
+                                        return acc;
+                                    }, []);
+                                    setNewImageFilesAtencion(uniqueFiles);
+                                }} // Guardar las nuevas imágenes en el estado de atención
                             />
                         </div>
                         <div>
@@ -1638,14 +1648,14 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                     formData.append('observacionesUsuario', observacionesUsuario);
                                     formData.append('esAtencionParcialMante', false);
                                     formData.append('esAtencionParcialOtro', false);
-                                    newImageFiles.forEach((file) => { // Agregar cada archivo al FormData
+                                    newImageFilesAtencion.forEach((file) => { // Agregar cada archivo al FormData
                                         formData.append('newImagesAtencion', file);
                                     });
 
                                     try {
                                         // Enviar los datos al backend
                                         await axios.put(
-                                            `http://localhost:5000/api/nodos/updateAtencion/${nodoToEdit.Id}`,
+                                            `http://localhost:5090/api/nodos/updateAtencion/${nodoToEdit.Id}`,
                                             formData,
                                             {
                                                 headers: {
@@ -1653,9 +1663,8 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                                 },
                                             }
                                         );
-                                        setNewImageFiles([]); // Limpiar el estado de las nuevas imágenes
-                                        handleSaveChangesAtenciones(); // Guardar los cambios
-                                        fetchNewNodos(); // Actualizar la lista de nodos
+                                        setNewImageFilesAtencion([]); // Limpiar el estado de las nuevas imágenes de atención
+                                        setShowObservacionesModal(false); // Cerrar la sub-modal, permitir al usuario continuar editando
                                     } catch (error) {
                                         console.error('Error al guardar los cambios:', error);
                                         alert('Error al guardar los cambios');
@@ -1733,8 +1742,8 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
 
                                     // Determinar la API a la que se enviarán los datos
                                     const endpoint = tipoAtencion === 'Atencion'
-                                        ? `http://localhost:5000/api/nodos/atencion/${selectedAtencionNodo.Id}`
-                                        : `http://localhost:5000/api/nodos/otraAtencion/${selectedOtherAtencionNodo.Id}`;
+                                        ? `http://localhost:5090/api/nodos/atencion/${selectedAtencionNodo.Id}`
+                                        : `http://localhost:5090/api/nodos/otraAtencion/${selectedOtherAtencionNodo.Id}`;
 
                                     try {
                                         // Enviar los datos al backend
@@ -1821,7 +1830,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                         // Enviar los datos al backend
                                         if (tipoAtencion === 'Atencion') {
                                             await axios.put(
-                                                `http://localhost:5000/api/nodos/updateAtencion/${selectedAtencionNodo.Id}`,
+                                                `http://localhost:5090/api/nodos/updateAtencion/${selectedAtencionNodo.Id}`,
                                                 formData,
                                                 {
                                                     headers: {
@@ -1831,7 +1840,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                             );
                                         } else {
                                             await axios.put(
-                                                `http://localhost:5000/api/nodos/updateAtencion/${selectedOtherAtencionNodo.Id}`,
+                                                `http://localhost:5090/api/nodos/updateAtencion/${selectedOtherAtencionNodo.Id}`,
                                                 formData,
                                                 {
                                                     headers: {

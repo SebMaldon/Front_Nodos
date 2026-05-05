@@ -28,7 +28,7 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
     const fetchUnidadesDetalle = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/nodos/unidades/detalle', {
+            const response = await axios.get('http://localhost:5090/api/nodos/unidades/detalle', {
                 params: {
                     page: page + 1, // backend is 1-indexed
                     limit: limit
@@ -107,7 +107,7 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
         if (!window.confirm(`¿Estás seguro que deseas eliminar el segmento ${selectedUnidad.ref} (${selectedUnidad.ip} - VLAN: ${selectedUnidad.vlan})?`)) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/nodos/unidades`, {
+            await axios.delete(`http://localhost:5090/api/nodos/unidades`, {
                 params: {
                     ref: selectedUnidad.ref,
                     ip: selectedUnidad.ip,
@@ -136,7 +136,7 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
         try {
             if (isEditing) {
                 // PUT Request
-                await axios.put('http://localhost:5000/api/nodos/unidades', {
+                await axios.put('http://localhost:5090/api/nodos/unidades', {
                     oldData: currentOldData,
                     newData: {
                         ...formData,
@@ -146,7 +146,7 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
                 alert('Unidad actualizada correctamente.');
             } else {
                 // POST Request
-                await axios.post('http://localhost:5000/api/nodos/unidades', {
+                await axios.post('http://localhost:5090/api/nodos/unidades', {
                     ref: formData.ref,
                     nombre: formData.nombre,
                     ip: formData.ip,

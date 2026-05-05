@@ -62,7 +62,7 @@ const tablaRegistros = () => {
     // Función para abrir el modal con los detalles del nodo
     const handleDetailsClick = async (nodoData) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`); // Llama a la API para obtener los detalles completos del nodo
+            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`); // Llama a la API para obtener los detalles completos del nodo
             setSelectedNodo(response.data); // Guarda los detalles completos en el estado
         } catch (error) {
             console.error('Error al obtener los detalles del nodo:', error);
@@ -72,7 +72,7 @@ const tablaRegistros = () => {
 
     // Función para mostrar la imagen en grande
     const handleImageClick = (imageUrl) => {
-        setSelectedImage('http://localhost:5000' + imageUrl); // Guarda la imagen seleccionada en el estado
+        setSelectedImage('http://localhost:5090' + imageUrl); // Guarda la imagen seleccionada en el estado
     };
 
     // Función para obtener los registros desde el backend
@@ -115,7 +115,7 @@ const tablaRegistros = () => {
             delete params.tipoAtencion;
 
             // Hacer la solicitud a la API con los filtros modificados
-            const response = await axios.get('http://localhost:5000/api/nodos', {
+            const response = await axios.get('http://localhost:5090/api/nodos', {
                 params: { ...params, page: page + 1, limit: rowsPerPage }, // Enviar los filtros modificados como parámetros de consulta
             });
 
@@ -508,7 +508,7 @@ const tablaRegistros = () => {
     useEffect(() => {
         const fetchUnidades = async () => { // Función para obtener las unidades
             try {
-                const response = await axios.get('http://localhost:5000/api/nodos/unidades'); // Hacer una petición GET a la API
+                const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
                 setUnidades(response.data); // Almacenar las unidades en el estado
             } catch (error) {
                 console.error('Error al obtener las unidades:', error);
@@ -540,7 +540,7 @@ const tablaRegistros = () => {
     const handleAtencionClick = async (nodoData) => {
         try {
             // Obtener las imágenes solventadas desde el backend
-            const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`);
+            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
             const Datos = response.data;
 
             // Actualizar el nodo con las imágenes solventadas
@@ -554,7 +554,7 @@ const tablaRegistros = () => {
     const handleOtherAtencionClick = async (nodoData) => {
         try {
             // Obtener las imágenes solventadas desde el backend
-            const response = await axios.get(`http://localhost:5000/api/nodos/${nodoData.Id}`);
+            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
             const Datos = response.data;
 
             // Actualizar el nodo con las imágenes solventadas
@@ -584,7 +584,7 @@ const tablaRegistros = () => {
     const handleImagenesUnidadNodos = async () => {
         try {
             // Obtener TODAS las imágenes (limit alto para traer todo y paginar en cliente)
-            const response = await axios.get(`http://localhost:5000/api/nodos/imagenes-nodos/${filtros.unidad}`, {
+            const response = await axios.get(`http://localhost:5090/api/nodos/imagenes-nodos/${filtros.unidad}`, {
                 params: { page: 1, limit: 9999 }
             });
 
@@ -601,7 +601,7 @@ const tablaRegistros = () => {
     // Función para abrir el modal de todas las imágenes de la unidad (MDF IDF)
     const handleImagenesUnidad = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/nodos/imagenes/${filtros.unidad}`, {
+            const response = await axios.get(`http://localhost:5090/api/nodos/imagenes/${filtros.unidad}`, {
                 params: { page: 1, limit: 9999 }
             });
             const ImagenesNodos = response.data;
@@ -632,8 +632,8 @@ const tablaRegistros = () => {
         try {
             // Cargar códigos e imágenes de la unidad en paralelo
             const [codigosRes, imagenesRes] = await Promise.all([
-                axios.get(`http://localhost:5000/api/nodos/mdf-idf-codigos/${unidadRef}`),
-                axios.get(`http://localhost:5000/api/nodos/imagenes/${unidadRef}`)
+                axios.get(`http://localhost:5090/api/nodos/mdf-idf-codigos/${unidadRef}`),
+                axios.get(`http://localhost:5090/api/nodos/imagenes/${unidadRef}`)
             ]);
             const codigos = codigosRes.data || [];
             const imagenes = imagenesRes.data?.MDF_IDF_Images || [];
@@ -662,8 +662,8 @@ const tablaRegistros = () => {
         if (unidadRef) {
             try {
                 const [codigosRes, imagenesRes] = await Promise.all([
-                    axios.get(`http://localhost:5000/api/nodos/mdf-idf-codigos/${unidadRef}`),
-                    axios.get(`http://localhost:5000/api/nodos/imagenes/${unidadRef}`)
+                    axios.get(`http://localhost:5090/api/nodos/mdf-idf-codigos/${unidadRef}`),
+                    axios.get(`http://localhost:5090/api/nodos/imagenes/${unidadRef}`)
                 ]);
                 setFetchedUnitCodes(codigosRes.data || []);
                 setFetchedUnitImages(imagenesRes.data?.MDF_IDF_Images || []);
@@ -678,7 +678,7 @@ const tablaRegistros = () => {
     const handleDeleteMdfIdf = async (id) => {
         if (!window.confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return;
         try {
-            await axios.delete(`http://localhost:5000/api/nodos/mdf-idf-imagenes/${id}`);
+            await axios.delete(`http://localhost:5090/api/nodos/mdf-idf-imagenes/${id}`);
             alert('Imagen eliminada con éxito');
             setSelectedImage(null); // Cerrar imagen grande
             setImgVersion(Date.now()); // Forzar rotura de cache
@@ -708,7 +708,7 @@ const tablaRegistros = () => {
                 if (mdfIdfFormData.file) {
                     formData.append('newImage', mdfIdfFormData.file);
                 }
-                await axios.put(`http://localhost:5000/api/nodos/mdf-idf-imagenes/${mdfIdfFormData.id}`, formData, {
+                await axios.put(`http://localhost:5090/api/nodos/mdf-idf-imagenes/${mdfIdfFormData.id}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 alert('Imagen actualizada con éxito');
@@ -724,7 +724,7 @@ const tablaRegistros = () => {
                     formData.append('CodigoMDFIDF', mdfIdfFormData.codigoMDFIDF);
                 }
 
-                await axios.post(`http://localhost:5000/api/nodos/mdf-idf-imagenes`, formData, {
+                await axios.post(`http://localhost:5090/api/nodos/mdf-idf-imagenes`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 alert('Imagen agregada con éxito');
@@ -1195,7 +1195,7 @@ const tablaRegistros = () => {
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
+                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     loading="lazy"
@@ -1280,7 +1280,7 @@ const tablaRegistros = () => {
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5000' + image.ImagenURL}  // URL de la imagen
+                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     loading="lazy"
@@ -1345,7 +1345,7 @@ const tablaRegistros = () => {
                                                     {formattedDate}
                                                 </div>
                                                 <img
-                                                    src={'http://localhost:5000' + image.ImagenURL}
+                                                    src={'http://localhost:5090' + image.ImagenURL}
                                                     alt={`Imagen ${index + 1}`}
                                                     width="200"
                                                     loading="lazy"
@@ -1450,7 +1450,7 @@ const tablaRegistros = () => {
                                                         <div className="image-date">{formattedDate}</div>
                                                     </div>
                                                     <img
-                                                        src={'http://localhost:5000' + image.ImagenURL}
+                                                        src={'http://localhost:5090' + image.ImagenURL}
                                                         alt={`Imagen ${imgNodosPage * imgNodosPerPage + index + 1}`}
                                                         className="thumbnail-image"
                                                         loading="lazy"
@@ -1517,7 +1517,7 @@ const tablaRegistros = () => {
                                                     <div className="image-date">{image.FechaCaptura}</div>
                                                 </div>
                                                 <img
-                                                    src={'http://localhost:5000' + image.ImagenURL + '?v=' + imgVersion}
+                                                    src={'http://localhost:5090' + image.ImagenURL + '?v=' + imgVersion}
                                                     alt={`Imagen ${imgMdfPage * imgMdfPerPage + index + 1}`}
                                                     className="thumbnail-image"
                                                     loading="lazy"
@@ -1562,13 +1562,13 @@ const tablaRegistros = () => {
                         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                     > {/* Contenedor del modal */}
                         <img
-                            src={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')} // Soporta ambos formatos
+                            src={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5090' + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')} // Soporta ambos formatos
                             alt="Imagen en grande" // Texto alternativo
                             style={{ maxWidth: '75%', maxHeight: '75%', objectFit: 'contain' }} // Estilos
                         />
                         <br />
-                        <a href={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')} target="_blank" rel="noopener noreferrer">
-                            URL: {typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5000' + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')}
+                        <a href={typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5090' + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')} target="_blank" rel="noopener noreferrer">
+                            URL: {typeof selectedImage === 'string' ? selectedImage : 'http://localhost:5090' + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')}
                         </a>
 
                         {/* Botones adicionales solo si es imagen de MDF/IDF */}
@@ -1687,7 +1687,7 @@ const tablaRegistros = () => {
                                                     .map(img => (
                                                         <div key={img.Id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                                                             <img
-                                                                src={'http://localhost:5000' + img.ImagenURL + '?v=' + imgVersion}
+                                                                src={'http://localhost:5090' + img.ImagenURL + '?v=' + imgVersion}
                                                                 alt={img.Nombre || 'Imagen'}
                                                                 loading="lazy"
                                                                 decoding="async"
@@ -1736,7 +1736,7 @@ const tablaRegistros = () => {
                                                     .map(img => (
                                                         <div key={img.Id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                                                             <img
-                                                                src={'http://localhost:5000' + img.ImagenURL + '?v=' + imgVersion}
+                                                                src={'http://localhost:5090' + img.ImagenURL + '?v=' + imgVersion}
                                                                 alt={img.Nombre || 'Imagen'}
                                                                 loading="lazy"
                                                                 decoding="async"

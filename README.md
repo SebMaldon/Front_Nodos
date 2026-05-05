@@ -23,7 +23,7 @@ La aplicación cuenta con un sistema de navegación que incluye:
 
 - Node.js (v18 o superior recomendado)
 - NPM o Yarn
-- Backend API corriendo en `http://localhost:5000`
+- Backend API corriendo en `http://localhost:5090`
 
 ## 📦 Instalación y Ejecución
 

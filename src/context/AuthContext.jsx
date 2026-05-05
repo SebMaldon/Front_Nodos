@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
     const logoutUser = async () => {
         if (user) {
             try {
-                await axios.post('http://localhost:5000/api/auth/logout', { usuario: user.usuario });
+                await axios.post('http://localhost:5090/api/auth/logout', { usuario: user.usuario });
             } catch (error) {
                 console.error("Error validando el logout", error);
             }

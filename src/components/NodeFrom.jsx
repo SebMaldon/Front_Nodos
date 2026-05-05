@@ -41,7 +41,7 @@ const NodeFrom = ({ onAddNodo }) => {
 
     const fetchUnidades = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/nodos/unidades'); // Hacer una petición GET a la API
+            const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
             setUnidades(response.data); // Almacenar las unidades en el estado
         } catch (error) {
             console.error('Error al obtener las unidades:', error);
@@ -53,7 +53,7 @@ const NodeFrom = ({ onAddNodo }) => {
 
         const fetchMateriales = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/nodos/materiales'); // Hacer una petición GET a la API
+                const response = await axios.get('http://localhost:5090/api/nodos/materiales'); // Hacer una petición GET a la API
 
                 setMateriales(response.data.materiales || response.data); // Almacenar los materiales en el estado
             } catch (error) {
@@ -266,6 +266,7 @@ const NodeFrom = ({ onAddNodo }) => {
         setIsSubmitting(true);
 
         const longitud = parseFloat(formData.Longitud) || 0; // Convertir a valor decimal
+        const nodosFaltantes = parseInt(formData.Nodos_faltantes) || 0; // Convertir a valor entero
 
         // Validar si Atencion y OtraAtencion es true
         const atencionValue = formData.Atencion ? 1 : 0; // Convertir el valor del checkbox a 1 o 0
@@ -285,7 +286,7 @@ const NodeFrom = ({ onAddNodo }) => {
         formDataToSend.append('Atencion', atencionValue); // Enviar el valor correcto del checkbox
         formDataToSend.append('OtraAtencion', otherAtencionValue); // Enviar el valor correcto del checkbox
         formDataToSend.append('Referencia', formData.Referencia); // Agregar los datos del formulario al FormData
-        formDataToSend.append('Nodos_faltantes', formData.Nodos_faltantes); // Agregar los datos del formulario al FormData
+        formDataToSend.append('Nodos_faltantes', nodosFaltantes); // Agregar los datos del formulario al FormData
         // Agregar las observaciones del usuario (si existen)
         if (formData.ObservacionesUsuarioAtencion) {
             formDataToSend.append('ObservacionesUsuarioAtencion', formData.ObservacionesUsuarioAtencion);
@@ -309,7 +310,7 @@ const NodeFrom = ({ onAddNodo }) => {
 
         try {
             // Enviar los datos al backend
-            const response = await axios.post('http://localhost:5000/api/nodos', formDataToSend, {
+            const response = await axios.post('http://localhost:5090/api/nodos', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data', // Especificar el tipo de contenido
                 },

@@ -103,7 +103,7 @@ function App() {
     // Función para obtener los nodos desde el backend
     const fetchNodos = async (p = page, l = rowsPerPage) => {
         try {
-            const response = await axios.get('http://localhost:5000/api/nodos', {
+            const response = await axios.get('http://localhost:5090/api/nodos', {
                 params: { page: p + 1, limit: l }
             });
             setNodos(response.data.nodos); // Almacenar los nodos en el estado
