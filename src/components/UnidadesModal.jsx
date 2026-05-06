@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { TablePagination } from '@mui/material';
+import { AuthContext } from '../context/AuthContext';
 
 const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
+    const { user } = useContext(AuthContext);
+
+    // Un administrador global tiene id_unidad = 0, null o no definido
+    const esAdminGlobal = !user?.id_unidad || user.id_unidad === 0;
+    // Un usuario asignado a una unidad específica
+    const esDeUnidadEspecifica = !esAdminGlobal;
     const [unidades, setUnidades] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -76,6 +83,11 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
     };
 
     const handleSelectRow = (unidad) => {
+        // Si el usuario tiene unidad asignada, solo puede seleccionar la suya
+        if (esDeUnidadEspecifica) {
+            const esUnidadPropia = String(unidad.id_unidad) === String(user.id_unidad);
+            if (!esUnidadPropia) return; // Ignora clics en otras unidades
+        }
         // Toggle selection
         if (selectedUnidad && selectedUnidad.ref === unidad.ref && selectedUnidad.ip === unidad.ip && selectedUnidad.vlan === unidad.vlan) {
             setSelectedUnidad(null);
@@ -175,13 +187,19 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                    {/* Formulario alineado a la izquierda */}
+                    {/* Formulario: visible siempre para admin global; para usuarios específicos solo cuando están editando */}
+                    {(esAdminGlobal || isEditing) && (
                     <div style={{ flex: '1 1 300px', minWidth: 0, maxWidth: '100%', backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #e0e0e0', boxSizing: 'border-box' }}>
                         <h4 style={{ marginBottom: '15px' }}>{isEditing ? 'Editar Registro' : 'Nuevo Registro'}</h4>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <div>
                                 <label style={{ fontWeight: 'bold' }}>Referencia (ref):</label>
-                                <input style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} type="text" name="ref" value={formData.ref} onChange={handleChange} required />
+                                <input
+                                    style={{ width: '100%', padding: '5px', boxSizing: 'border-box', backgroundColor: (isEditing && esDeUnidadEspecifica) ? '#f0f0f0' : undefined }}
+                                    type="text" name="ref" value={formData.ref} onChange={handleChange}
+                                    required
+                                    readOnly={isEditing && esDeUnidadEspecifica}
+                                />
                             </div>
                             <div>
                                 <label style={{ fontWeight: 'bold' }}>Nombre:</label>
@@ -214,6 +232,7 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
                             </div>
                         </form>
                     </div>
+                    )}
 
                     {/* Tabla y botones alineados a la derecha */}
                     <div style={{ flex: '2 1 300px', minWidth: 0, maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -234,22 +253,25 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
                             >
                                 <i className="fas fa-edit"></i> Editar
                             </button>
-                            <button
-                                onClick={onClickEliminar}
-                                disabled={!selectedUnidad}
-                                className="delete-button"
-                                style={{
-                                    flex: 1,
-                                    maxWidth: '180px',
-                                    maxHeight: '40px',
-                                    padding: '5px 15px', borderRadius: '5px', border: 'none',
-                                    cursor: selectedUnidad ? 'pointer' : 'not-allowed',
-                                    opacity: selectedUnidad ? 1 : 0.5,
-                                    color: 'white'
-                                }}
-                            >
-                                <i className="fas fa-trash"></i> Eliminar
-                            </button>
+                            {/* Eliminar solo disponible para admin global */}
+                            {esAdminGlobal && (
+                                <button
+                                    onClick={onClickEliminar}
+                                    disabled={!selectedUnidad}
+                                    className="delete-button"
+                                    style={{
+                                        flex: 1,
+                                        maxWidth: '180px',
+                                        maxHeight: '40px',
+                                        padding: '5px 15px', borderRadius: '5px', border: 'none',
+                                        cursor: selectedUnidad ? 'pointer' : 'not-allowed',
+                                        opacity: selectedUnidad ? 1 : 0.5,
+                                        color: 'white'
+                                    }}
+                                >
+                                    <i className="fas fa-trash"></i> Eliminar
+                                </button>
+                            )}
                         </div>
 
                         {/* Table wrapper that isolates horizontal scrolling */}
@@ -271,12 +293,15 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
                                         </tr>
                                     ) : unidades.map((unidad, idx) => {
                                         const isSelected = selectedUnidad && selectedUnidad.ref === unidad.ref && selectedUnidad.ip === unidad.ip && selectedUnidad.vlan === unidad.vlan;
+                                        // Para usuarios de unidad específica, filas de otras unidades aparecen opacas y sin cursor pointer
+                                        const esSeleccionable = esAdminGlobal || String(unidad.id_unidad) === String(user?.id_unidad);
                                         return (
                                             <tr
                                                 key={`${unidad.ref}-${unidad.ip}-${unidad.vlan}-${idx}`}
                                                 onClick={() => handleSelectRow(unidad)}
                                                 style={{
-                                                    cursor: 'pointer',
+                                                    cursor: esSeleccionable ? 'pointer' : 'default',
+                                                    opacity: esSeleccionable ? 1 : 0.45,
                                                     backgroundColor: isSelected ? '#aaddba' : undefined
                                                 }}
                                             >

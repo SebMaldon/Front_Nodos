@@ -67,11 +67,13 @@ function Navigation({ mobileMenuOpen, setMobileMenuOpen }) {
                                             <i className="fas fa-list"></i> Catálogo
                                         </NavLink>
                                     </li>
-                                    <li className={location.pathname.includes('/gestion-nodos') ? 'active' : ''}>
-                                        <NavLink to="/gestion-nodos" onClick={closeMenu}>
-                                            <i className="fas fa-cog"></i> Gestión
-                                        </NavLink>
-                                    </li>
+                                    {user.role === 'administrador' && (
+                                        <li className={location.pathname.includes('/gestion-nodos') ? 'active' : ''}>
+                                            <NavLink to="/gestion-nodos" onClick={closeMenu}>
+                                                <i className="fas fa-cog"></i> Gestión
+                                            </NavLink>
+                                        </li>
+                                    )}
                                     <li className={location.pathname.includes('/catalogo-prioritarios') ? 'active' : ''}>
                                         <NavLink to="/catalogo-prioritarios" onClick={closeMenu}>
                                             <i className="fas fa-exclamation-triangle"></i> Prioritarios
@@ -95,6 +97,7 @@ function Navigation({ mobileMenuOpen, setMobileMenuOpen }) {
 function App() {
     const [nodos, setNodos] = useState([]); // Estado para almacenar los nodos
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0); // Clave para forzar re-fetch en NodeTable
 
     const [page, setPage] = useState(0); // Estado para la página actual
     const [rowsPerPage, setRowsPerPage] = useState(10); // Estado para límite de registros
@@ -121,7 +124,8 @@ function App() {
     // Función para agregar un nuevo nodo
     const handleAddNodo = async () => {
         try {
-            await fetchNodos(); // Actualizar la lista de nodos después de agregar uno nuevo
+            await fetchNodos(); // Actualizar la lista de nodos sin filtros
+            setRefreshKey(prev => prev + 1); // Forzar re-fetch en NodeTable (con filtros activos)
         } catch (error) {
             console.error('Error al agregar el nodo:', error);
         }
@@ -139,7 +143,7 @@ function App() {
                             <Route
                                 path="/gestion-nodos"
                                 element={
-                                    <ProtectedRoute>
+                                    <ProtectedRoute requiredRole="administrador">
                                         <div className="page-container">
                                             <h1 className="page-title">Gestión y Registro de Nodos</h1>
                                             <div className="content-container">
@@ -155,6 +159,7 @@ function App() {
                                                         setPageApp={setPage}
                                                         rowsPerPageApp={rowsPerPage}
                                                         setRowsPerPageApp={setRowsPerPage}
+                                                        refreshKey={refreshKey}
                                                     />
                                                 </div>
                                             </div>

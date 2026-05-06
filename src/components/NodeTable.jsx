@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Button, Tooltip, TextField, ListItemText, ListItem, List, Typography, TablePagination } from '@mui/material';
 import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
 
-const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, rowsPerPageApp, setRowsPerPageApp }) => { // Recibe los nodos y la función para obtenerlos
+const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, rowsPerPageApp, setRowsPerPageApp, refreshKey }) => { // Recibe los nodos y la función para obtenerlos
+    const { user } = useContext(AuthContext); // Obtenemos el usuario activo
     const [pageNode, setPageNode] = useState(0);
     const [rowsPerPageNode, setRowsPerPageNode] = useState(10);
     const [selectedRowId, setSelectedRowId] = useState(null); // Estado para la fila seleccionada
@@ -79,6 +81,13 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
             fetchNewNodos();
         }
     }, [pageNode, rowsPerPageNode]);
+
+    // Re-fetch cuando se agrega un nodo nuevo desde el formulario (refreshKey viene de App.jsx)
+    useEffect(() => {
+        if (refreshKey > 0) {
+            fetchNewNodos();
+        }
+    }, [refreshKey]);
 
     // Función para manejar cambios en los filtros
     const handleFiltroChange = (e) => {
@@ -161,14 +170,24 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
     useEffect(() => {
         const fetchUnidades = async () => {
             try {
-                const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
+                const response = await axios.get('http://localhost:5090/api/nodos/unidades');
+                const lista = response.data;
+                setUnidades(lista);
 
-                setUnidades(response.data); // Almacenar las unidades en el estado
+                // Si el usuario tiene unidad asignada, pre-seleccionarla automáticamente
+                if (user?.id_unidad && user.id_unidad !== 0) {
+                    const unidadAsignada = lista.find(
+                        u => String(u.id_unidad) === String(user.id_unidad)
+                    );
+                    if (unidadAsignada) {
+                        setFiltros(prev => ({ ...prev, unidad: unidadAsignada.ref }));
+                    }
+                }
             } catch (error) {
                 console.error('Error al obtener las unidades:', error);
             }
         };
-        fetchUnidades(); // Llamar a la función para obtener las unidades
+        fetchUnidades();
     }, []);
 
     // Obtener los materiales al cargar el componente
@@ -671,20 +690,34 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                 </label>
                 <label style={{ marginLeft: '10px' }}>
                     Unidad:
-                    <select // Selector para filtrar por unidad
+                    <select
                         style={{ marginLeft: '5px' }}
-                        name="unidad" // Nombre del campo
-                        value={filtros.unidad} // Valor del campo
-                        onChange={handleFiltroChange} // Manejar cambios en el campo
+                        name="unidad"
+                        value={filtros.unidad}
+                        onChange={handleFiltroChange}
+                        disabled={!!(user?.id_unidad && user.id_unidad !== 0)}
                     >
-                        <option value="">Todas</option> {/* Opción por defecto */}
-                        {unidades.map((unidad) => ( // Mapear las unidades para mostrarlas en el select
-                            <option key={unidad.ref} value={unidad.ref}> {/* Opción de la unidad con su referencia */}
-                                {unidad.nombre} {/* Nombre de la unidad */}
+                        {/* Mostrar 'Todas' solo para administradores globales */}
+                        {(!user?.id_unidad || user.id_unidad === 0) && (
+                            <option value="">Todas</option>
+                        )}
+                        {unidades.map((unidad) => (
+                            <option key={unidad.ref} value={unidad.ref}>
+                                {unidad.nombre}
                             </option>
                         ))}
                     </select>
                 </label>
+                <Tooltip title="Refrescar datos">
+                    <Button
+                        onClick={fetchNewNodos}
+                        variant="contained"
+                        size="small"
+                        style={{ marginLeft: '10px', height: '30px', backgroundColor: '#007e47' }}
+                    >
+                        <i className="fas fa-sync-alt"></i>
+                    </Button>
+                </Tooltip>
             </div>
 
             {/* Botones de Acción Globales */}
@@ -701,31 +734,35 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                 >
                     <i className="fas fa-eye" style={{ marginRight: '5px' }}></i> Detalles
                 </Button>
-                <Button
-                    onClick={() => {
-                        const node = datosAMostrar.find(n => n.Id === selectedRowId);
-                        if (node) handleEditClick(node);
-                    }}
-                    variant='contained'
-                    size='small'
-                    disabled={!selectedRowId}
-                    color="warning"
-                    style={{ backgroundColor: !selectedRowId ? undefined : '#ed6c02', color: 'white' }}
-                >
-                    <i className="fas fa-edit" style={{ marginRight: '5px' }}></i> Editar
-                </Button>
-                <Button
-                    onClick={() => {
-                        const node = datosAMostrar.find(n => n.Id === selectedRowId);
-                        if (node) handleDeleteClick(node);
-                    }}
-                    variant='contained'
-                    size='small'
-                    disabled={!selectedRowId}
-                    color="error"
-                >
-                    <i className="fas fa-trash" style={{ marginRight: '5px' }}></i> Eliminar
-                </Button>
+                {user?.role === 'administrador' && (
+                    <>
+                        <Button
+                            onClick={() => {
+                                const node = datosAMostrar.find(n => n.Id === selectedRowId);
+                                if (node) handleEditClick(node);
+                            }}
+                            variant='contained'
+                            size='small'
+                            disabled={!selectedRowId}
+                            color="warning"
+                            style={{ backgroundColor: !selectedRowId ? undefined : '#ed6c02', color: 'white' }}
+                        >
+                            <i className="fas fa-edit" style={{ marginRight: '5px' }}></i> Editar
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                const node = datosAMostrar.find(n => n.Id === selectedRowId);
+                                if (node) handleDeleteClick(node);
+                            }}
+                            variant='contained'
+                            size='small'
+                            disabled={!selectedRowId}
+                            color="error"
+                        >
+                            <i className="fas fa-trash" style={{ marginRight: '5px' }}></i> Eliminar
+                        </Button>
+                    </>
+                )}
             </div>
 
             {/* Etiqueta con el total de registros (solo si los filtros no están vacíos) */}
@@ -796,12 +833,12 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                     {/* Muestra el estado de atención del nodo con imagenes*/}
                                     <td onClick={() => handleAtencionClick(nodoData)}
                                         style={{ cursor: 'pointer', textAlign: 'center' }}>
-                                        {nodoData.Atendido ? '✅' : ''}{nodoData.Atencion ? '⚠️' : ''} {/* Muestra un icono si requiere atención */}
+                                        {nodoData.Atencion ? '⚠️' : (nodoData.Atendido ? '✅' : '')} {/* Prioriza advertencia, si no, muestra atendido */}
                                     </td>
                                     {/* Muestra el estado de atención del nodo con imagenes*/}
                                     <td onClick={() => handleOtherAtencionClick(nodoData)}
                                         style={{ cursor: 'pointer', textAlign: 'center' }}>
-                                        {nodoData.OtroAtendido ? '🟢' : ''}{nodoData.OtraAtencion ? '🔴' : ''} {/* Muestra un icono si requiere atención */}
+                                        {nodoData.OtraAtencion ? '🔴' : (nodoData.OtroAtendido ? '🟢' : '')} {/* Prioriza atención roja, si no, muestra verde */}
                                     </td>
                                 </tr>
                             );
@@ -1851,6 +1888,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                                         }
                                         alert(`${tipoAtencion === 'Atencion' ? 'Mantenimiento parcialmente solucionado' : 'Otra atención parcialmente solucionada'}`);
                                         setNewImageFiles([]); // Limpiar el estado de las nuevas imágenes
+                                        fetchNewNodos(); // Actualizar la lista de nodos
                                         handleCloseModal(); // Cerrar el modal
                                     } catch (error) {
                                         console.error(`Error al solventar parcialmente la ${tipoAtencion === 'Atencion' ? 'mantenimiento' : 'otra atención'}:`, error);

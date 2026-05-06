@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Tooltip, TablePagination } from '@mui/material';
 import axios from 'axios';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
 const NodosSustitucion = () => {
+    const { user } = useContext(AuthContext);
     const [selectedNodo, setSelectedNodo] = useState(null); // Estado para almacenar el nodo seleccionado (detalles)
     const [selectedImage, setSelectedImage] = useState(null); // Estado para almacenar la imagen seleccionada
     const [selectedSinAtencionNodo, setSelectedAtencionNodo] = useState(null); // Estado para almacenar información del nodo y sus registros de mantenimiento
@@ -119,7 +122,18 @@ const NodosSustitucion = () => {
         const fetchUnidades = async () => { // Función para obtener las unidades
             try {
                 const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
-                setUnidades(response.data); // Almacenar las unidades en el estado
+                const lista = response.data;
+                setUnidades(lista);
+
+                // Si el usuario tiene unidad asignada, pre-seleccionarla automáticamente
+                if (user?.id_unidad && user.id_unidad !== 0) {
+                    const unidadAsignada = lista.find(
+                        u => String(u.id_unidad) === String(user.id_unidad)
+                    );
+                    if (unidadAsignada) {
+                        setFiltros(prev => ({ ...prev, unidad: unidadAsignada.ref }));
+                    }
+                }
             } catch (error) {
                 console.error('Error al obtener las unidades:', error);
             }
@@ -205,8 +219,11 @@ const NodosSustitucion = () => {
                         name="unidad"
                         value={filtros.unidad} // Valor del filtro
                         onChange={handleFiltroChange} // Maneja los cambios en los filtros
+                        disabled={!!(user?.id_unidad && user.id_unidad !== 0)}
                     >
-                        <option value="">Todas</option> {/* Valor por defecto */}
+                        {(!user?.id_unidad || user.id_unidad === 0) && (
+                            <option value="">Todas</option>
+                        )}
                         {unidades.map((unidad) => (
                             <option key={unidad.ref} value={unidad.ref}> {/* Mapea las unidades y las muestra */}
                                 {unidad.nombre} {/* Muestra el nombre de la unidad */}
@@ -214,6 +231,16 @@ const NodosSustitucion = () => {
                         ))}
                     </select>
                 </label>
+                <Tooltip title="Refrescar datos">
+                    <Button
+                        onClick={fetchNodos}
+                        variant="contained"
+                        size="small"
+                        style={{ marginLeft: '10px', height: '30px', backgroundColor: '#007e47' }}
+                    >
+                        <i className="fas fa-sync-alt"></i>
+                    </Button>
+                </Tooltip>
             </div>
 
             <div style={{ marginTop: '10px', fontWeight: 'bold', display: 'flex', flexWrap: 'wrap', gap: '15px' }}>

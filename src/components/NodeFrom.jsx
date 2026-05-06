@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react'; // Importar las funciones useState 
 import axios from 'axios'; // Importar axios para realizar peticiones HTTP
 import { Button, Tooltip, TextField, ListItemText, ListItem, List, Select, MenuItem } from '@mui/material';
 import UnidadesModal from './UnidadesModal';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
 const NodeFrom = ({ onAddNodo }) => {
+    const { user } = useContext(AuthContext);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({ // Estado para almacenar los datos del formulario
         Ubicacion: '',
@@ -42,7 +45,22 @@ const NodeFrom = ({ onAddNodo }) => {
     const fetchUnidades = async () => {
         try {
             const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
-            setUnidades(response.data); // Almacenar las unidades en el estado
+            const lista = response.data;
+            setUnidades(lista);
+
+            // Si el usuario tiene unidad asignada, pre-seleccionarla automáticamente
+            if (user?.id_unidad && user.id_unidad !== 0) {
+                const unidadAsignada = lista.find(
+                    u => String(u.id_unidad) === String(user.id_unidad)
+                );
+                if (unidadAsignada) {
+                    setFormData(prev => ({ 
+                        ...prev, 
+                        Unidad: unidadAsignada.nombre,
+                        Referencia: unidadAsignada.ref 
+                    }));
+                }
+            }
         } catch (error) {
             console.error('Error al obtener las unidades:', error);
         }
@@ -334,8 +352,7 @@ const NodeFrom = ({ onAddNodo }) => {
                 Referencia: '',
                 Nodos_faltantes: '',
             });
-            setMateriales([]);
-            setMaterialActual([]);
+            setMaterialActual({ id: '', cantidad: 1 });
             setMaterialesSeleccionados([]);
             setObservacionesUsuario(''); //Limpiar las observaciones
             setImageFiles([]); // Limpiar las imágenes seleccionadas
@@ -376,8 +393,11 @@ const NodeFrom = ({ onAddNodo }) => {
                             onChange={handleChange} // Manejar cambios en el campo
                             required // Campo requerido
                             style={{ flexGrow: 1 }}
+                            disabled={!!(user?.id_unidad && user.id_unidad !== 0)}
                         >
-                            <option value="">Seleccione una unidad</option> {/* Opción por defecto */}
+                            {(!user?.id_unidad || user.id_unidad === 0) && (
+                                <option value="">Seleccione una unidad</option>
+                            )}
                             {unidades.map((unidad) => ( // Mapear las unidades para mostrarlas en el select
                                 <option key={unidad.nombre} value={unidad.nombre}> {/* Opción de la unidad con su referencia */}
                                     {unidad.nombre} {/* Nombre de la unidad */}

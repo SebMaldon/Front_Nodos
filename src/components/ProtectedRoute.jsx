@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, requiredRole }) => {
     const { user, loading } = useContext(AuthContext);
 
     if (loading) {
@@ -14,13 +14,15 @@ const ProtectedRoute = ({ children }) => {
         return <Navigate to="/login" replace />;
     }
 
-    // El sistema es exclusivo para administradores, lo verificamos en el AuthContext o Backend, 
-    // pero podemos hacer un chequeo adicional aquí por seguridad:
-    if (user.role && user.role.toLowerCase() !== 'administrador') {
-        return <div>Acceso Denegado. Se requieren permisos de administrador.</div>;
+    // Verificamos si la ruta requiere un rol específico
+    if (requiredRole && user.role && user.role.toLowerCase() !== requiredRole.toLowerCase()) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
+            <h2>Acceso Denegado</h2>
+            <p>Se requieren permisos de {requiredRole} para ver esta página.</p>
+        </div>;
     }
 
-    // Si está autenticado y es admin, renderiza la ruta correspondiente
+    // Si está autenticado y tiene permisos, renderiza la ruta correspondiente
     return children;
 };
 

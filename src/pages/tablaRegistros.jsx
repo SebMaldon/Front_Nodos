@@ -1,9 +1,11 @@
 import ExcelJS from 'exceljs';
 import { Button, Tooltip, TablePagination } from '@mui/material';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
 
 const tablaRegistros = () => {
+    const { user } = useContext(AuthContext);
     const [hoveredRow, setHoveredRow] = useState(null); // Estado para marcar la selección en la tabla
     const [selectedNodo, setSelectedNodo] = useState(null); // Estado para almacenar el nodo seleccionado (detalles)
     const [selectedImage, setSelectedImage] = useState(null); // Estado para almacenar la imagen seleccionada
@@ -506,16 +508,27 @@ const tablaRegistros = () => {
 
     // Obtener las unidades al cargar el componente
     useEffect(() => {
-        const fetchUnidades = async () => { // Función para obtener las unidades
+        const fetchUnidades = async () => {
             try {
-                const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
-                setUnidades(response.data); // Almacenar las unidades en el estado
+                const response = await axios.get('http://localhost:5090/api/nodos/unidades');
+                const lista = response.data;
+                setUnidades(lista);
+
+                // Si el usuario tiene unidad asignada, pre-seleccionarla automáticamente
+                if (user?.id_unidad && user.id_unidad !== 0) {
+                    const unidadAsignada = lista.find(
+                        u => String(u.id_unidad) === String(user.id_unidad)
+                    );
+                    if (unidadAsignada) {
+                        setFiltros(prev => ({ ...prev, unidad: unidadAsignada.ref }));
+                    }
+                }
             } catch (error) {
                 console.error('Error al obtener las unidades:', error);
             }
         };
 
-        fetchUnidades(); // Llamar a la función para obtener las unidades
+        fetchUnidades();
     }, []);
 
     // Cargar los registros al iniciar la página
@@ -775,12 +788,16 @@ const tablaRegistros = () => {
                         style={{ marginLeft: '5px' }}
                         name="unidad"
                         value={filtros.unidad}
-                        onChange={handleFiltroChange} // Cambia el valor del filtro unidad
+                        onChange={handleFiltroChange}
+                        disabled={!!(user?.id_unidad && user.id_unidad !== 0)}
                     >
-                        <option value="">Todas</option>
-                        {unidades.map((unidad) => ( // Mapea las unidades y las muestra en el select
-                            <option key={unidad.ref} value={unidad.ref}> {/* Coloca el valor de la unidad */}
-                                {unidad.nombre} {/* Coloca el nombre de la unidad */}
+                        {/* Mostrar 'Todas' solo para administradores globales */}
+                        {(!user?.id_unidad || user.id_unidad === 0) && (
+                            <option value="">Todas</option>
+                        )}
+                        {unidades.map((unidad) => (
+                            <option key={unidad.ref} value={unidad.ref}>
+                                {unidad.nombre}
                             </option>
                         ))}
                     </select>
@@ -910,8 +927,17 @@ const tablaRegistros = () => {
                         </select>
                     </label>
                 </label>
-                
-    */}
+            */}
+                <Tooltip title="Refrescar datos">
+                    <Button
+                        onClick={fetchNodos}
+                        variant="contained"
+                        size="small"
+                        style={{ marginLeft: '10px', height: '30px', backgroundColor: '#007e47' }}
+                    >
+                        <i className="fas fa-sync-alt"></i>
+                    </Button>
+                </Tooltip>
             </div>
 
             <div style={{ marginTop: '10px', fontWeight: 'bold', marginBottom: '20px' }}>
@@ -1495,16 +1521,18 @@ const tablaRegistros = () => {
                         <div className="modal" onClick={(e) => e.stopPropagation()}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                                 <h3 className="image-modal-title" style={{ margin: 0 }}>Imágenes de los MDF e IDF:</h3>
-                                <Tooltip title="Añadir Imagen">
-                                    <Button variant="contained" color="primary" onClick={() => {
-                                        setMdfIdfFormData(prev => ({ ...prev, unidadForm: filtros.unidad }));
-                                        handleFormUnidadChange(filtros.unidad);
-                                        setShowMdfIdfForm(true);
-                                    }}>
-                                        <i className="fas fa-plus" style={{ marginRight: '5px' }}></i>
-                                        <span className="hide-on-mobile">Añadir Imagen</span>
-                                    </Button>
-                                </Tooltip>
+                                {user?.role === 'administrador' && (
+                                    <Tooltip title="Añadir Imagen">
+                                        <Button variant="contained" color="primary" onClick={() => {
+                                            setMdfIdfFormData(prev => ({ ...prev, unidadForm: filtros.unidad }));
+                                            handleFormUnidadChange(filtros.unidad);
+                                            setShowMdfIdfForm(true);
+                                        }}>
+                                            <i className="fas fa-plus" style={{ marginRight: '5px' }}></i>
+                                            <span className="hide-on-mobile">Añadir Imagen</span>
+                                        </Button>
+                                    </Tooltip>
+                                )}
                             </div>
 
                             {totalMdfImages > 0 ? (
@@ -1572,7 +1600,7 @@ const tablaRegistros = () => {
                         </a>
 
                         {/* Botones adicionales solo si es imagen de MDF/IDF */}
-                        {typeof selectedImage === 'object' && selectedImage.isMdfIdf && (
+                        {typeof selectedImage === 'object' && selectedImage.isMdfIdf && user?.role === 'administrador' && (
                             <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                                 <Button
                                     variant="contained"
