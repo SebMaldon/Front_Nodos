@@ -40,7 +40,7 @@ function Navigation({ mobileMenuOpen, setMobileMenuOpen }) {
             <header className="imss-header" style={{ position: 'relative', zIndex: 999 }}>
                 <div className="header-container">
                     <div className="header-logo">
-                        <img src="/IMSS_Logosímbolo.png" alt="Logo IMSS" />
+                        <img src="/IMSS_Logosímbolo_Blanco.png" alt="Logo IMSS" />
                         <span>Sistema de Gestión de Nodos</span>
                     </div>
 

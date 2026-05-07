@@ -44,7 +44,7 @@ const Login = () => {
         <div className="login-container">
             <div className="login-box">
                 <div className="login-header">
-                    <img src="/IMSS_Logosímbolo.png" alt="Logo IMSS" className="login-logo" />
+                    <img src="/IMSS_LogosímboloLetras.png" alt="Logo IMSS" className="login-logo" />
                     <h2>Sistema de Gestión de Nodos</h2>
                     <p>Inicie sesión con su cuenta de administrador</p>
                 </div>

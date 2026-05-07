@@ -11,7 +11,7 @@ const Inicio = () => {
             <header className="imss-hero">
                 <div className="hero-overlay">
                     <div className="hero-content">
-                        <img src="/IMSS_Logosímbolo.png" alt="Logo IMSS" className="logo-imss" />
+                        <img src="/IMSS_Logosímbolo_Blanco.png" alt="Logo IMSS" className="logo-imss" />
                         <h1>Sistema de Gestión de Nodos</h1>
                         <p>Plataforma integral para el monitoreo y administración de la infraestructura tecnológica del IMSS</p>
                     </div>
