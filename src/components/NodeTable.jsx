@@ -195,7 +195,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         try {
             const response = await axios.get('http://localhost:5090/api/nodos/materiales'); // Hacer una petición GET a la API
 
-            setMateriales(response.data); // Almacenar los materiales en el estado
+            setMateriales(response.data.materiales || response.data); // Almacenar los materiales en el estado
         } catch (error) {
             console.log('Error al obtener los materiales: ', error);
         }
@@ -562,10 +562,10 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         try {
             // Obtener todos los materiales disponibles
             const materialesResponse = await axios.get('http://localhost:5090/api/nodos/materiales');
-            const todosMateriales = materialesResponse.data;
+            const todosMateriales = materialesResponse.data.materiales || materialesResponse.data;
             // Obtener materiales específicos del nodo (si existen)
             const nodoMaterialesResponse = await axios.get(`http://localhost:5090/api/nodos/${nodoToEdit.Id}`);
-            const materialesDelNodo = nodoMaterialesResponse.data.materiales;
+            const materialesDelNodo = nodoMaterialesResponse.data.materiales || [];
             // Combinar ambos conjuntos de datos
             const materialesCombinados = todosMateriales.map(material => {
                 const materialEnNodo = materialesDelNodo.find(m => m.MaterialId === material.Id);
