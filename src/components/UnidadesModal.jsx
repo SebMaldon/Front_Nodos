@@ -189,49 +189,49 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                     {/* Formulario: visible siempre para admin global; para usuarios específicos solo cuando están editando */}
                     {(esAdminGlobal || isEditing) && (
-                    <div style={{ flex: '1 1 300px', minWidth: 0, maxWidth: '100%', backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #e0e0e0', boxSizing: 'border-box' }}>
-                        <h4 style={{ marginBottom: '15px' }}>{isEditing ? 'Editar Registro' : 'Nuevo Registro'}</h4>
-                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <div>
-                                <label style={{ fontWeight: 'bold' }}>Referencia (ref):</label>
-                                <input
-                                    style={{ width: '100%', padding: '5px', boxSizing: 'border-box', backgroundColor: (isEditing && esDeUnidadEspecifica) ? '#f0f0f0' : undefined }}
-                                    type="text" name="ref" value={formData.ref} onChange={handleChange}
-                                    required
-                                    readOnly={isEditing && esDeUnidadEspecifica}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ fontWeight: 'bold' }}>Nombre:</label>
-                                <input style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} type="text" name="nombre" value={formData.nombre} onChange={handleChange} required />
-                            </div>
-                            <div>
-                                <label style={{ fontWeight: 'bold' }}>IP:</label>
-                                <input style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} type="text" name="ip" value={formData.ip} onChange={handleChange} required />
-                            </div>
-                            <div>
-                                <label style={{ fontWeight: 'bold' }}>VLAN:</label>
-                                <input style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} type="number" name="vlan" value={formData.vlan} onChange={handleChange} required />
-                            </div>
-                            <div>
-                                <label style={{ fontWeight: 'bold' }}>Tipo Unidad:</label>
-                                <select style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} name="tipo_unidad" value={formData.tipo_unidad} onChange={handleChange} required>
-                                    <option value="Médica">Médica</option>
-                                    <option value="Administrativa">Administrativa</option>
-                                </select>
-                            </div>
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                                <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '5px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--imss-green)', color: 'white' }}>
-                                    <i className="fas fa-save"></i> {isEditing ? 'Guardar' : 'Agregar'}
-                                </button>
-                                {isEditing && (
-                                    <button type="button" onClick={resetForm} style={{ flex: 1, padding: '10px', borderRadius: '5px', border: 'none', cursor: 'pointer', backgroundColor: 'gray', color: 'white' }}>
-                                        <i className="fas fa-times"></i> Cancelar
+                        <div style={{ flex: '1 1 300px', minWidth: 0, maxWidth: '100%', backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #e0e0e0', boxSizing: 'border-box' }}>
+                            <h4 style={{ marginBottom: '15px' }}>{isEditing ? 'Editar Registro' : 'Nuevo Registro'}</h4>
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <div>
+                                    <label style={{ fontWeight: 'bold' }}>Referencia (ref):</label>
+                                    <input
+                                        style={{ width: '100%', padding: '5px', boxSizing: 'border-box', backgroundColor: (isEditing && esDeUnidadEspecifica) ? '#f0f0f0' : undefined }}
+                                        type="text" name="ref" value={formData.ref} onChange={handleChange}
+                                        required
+                                        readOnly={isEditing && esDeUnidadEspecifica}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ fontWeight: 'bold' }}>Nombre:</label>
+                                    <input style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} type="text" name="nombre" value={formData.nombre} onChange={handleChange} required />
+                                </div>
+                                <div>
+                                    <label style={{ fontWeight: 'bold' }}>IP:</label>
+                                    <input style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} type="text" name="ip" value={formData.ip} onChange={handleChange} required />
+                                </div>
+                                <div>
+                                    <label style={{ fontWeight: 'bold' }}>VLAN:</label>
+                                    <input style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} type="number" name="vlan" value={formData.vlan} onChange={handleChange} required />
+                                </div>
+                                <div>
+                                    <label style={{ fontWeight: 'bold' }}>Tipo Unidad:</label>
+                                    <select style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} name="tipo_unidad" value={formData.tipo_unidad} onChange={handleChange} required>
+                                        <option value="Médica">Médica</option>
+                                        <option value="Administrativa">Administrativa</option>
+                                    </select>
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                    <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '5px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--imss-green)', color: 'white' }}>
+                                        <i className="fas fa-save"></i> {isEditing ? 'Guardar' : 'Agregar'}
                                     </button>
-                                )}
-                            </div>
-                        </form>
-                    </div>
+                                    {isEditing && (
+                                        <button type="button" onClick={resetForm} style={{ flex: 1, padding: '10px', borderRadius: '5px', border: 'none', cursor: 'pointer', backgroundColor: 'gray', color: 'white' }}>
+                                            <i className="fas fa-times"></i> Cancelar
+                                        </button>
+                                    )}
+                                </div>
+                            </form>
+                        </div>
                     )}
 
                     {/* Tabla y botones alineados a la derecha */}

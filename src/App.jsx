@@ -58,7 +58,7 @@ function Navigation({ mobileMenuOpen, setMobileMenuOpen }) {
                             {user && (
                                 <>
                                     <li className={location.pathname === '/' ? 'active' : ''}>
-                                        <NavLink to="/" exact onClick={closeMenu}>
+                                        <NavLink to="/" onClick={closeMenu}>
                                             <i className="fas fa-home"></i> Inicio
                                         </NavLink>
                                     </li>
@@ -95,37 +95,18 @@ function Navigation({ mobileMenuOpen, setMobileMenuOpen }) {
 }
 
 function App() {
-    const [nodos, setNodos] = useState([]); // Estado para almacenar los nodos
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0); // Clave para forzar re-fetch en NodeTable
 
-    const [page, setPage] = useState(0); // Estado para la página actual
-    const [rowsPerPage, setRowsPerPage] = useState(10); // Estado para límite de registros
-    const [totalRegistrosApp, setTotalRegistrosApp] = useState(0);
-
-    // Función para obtener los nodos desde el backend
-    const fetchNodos = async (p = page, l = rowsPerPage) => {
-        try {
-            const response = await axios.get('http://localhost:5090/api/nodos', {
-                params: { page: p + 1, limit: l }
-            });
-            setNodos(response.data.nodos); // Almacenar los nodos en el estado
-            setTotalRegistrosApp(response.data.total || 0);
-        } catch (error) {
-            console.error('Error al obtener los nodos:', error);
-        }
-    };
-
     // Cargar los nodos al iniciar y cuando la paginación cambie
     useEffect(() => {
-        fetchNodos(page, rowsPerPage);
-    }, [page, rowsPerPage]);
+        // Data fetching is now handled inside NodeTable
+    }, []);
 
     // Función para agregar un nuevo nodo
     const handleAddNodo = async () => {
         try {
-            await fetchNodos(); // Actualizar la lista de nodos sin filtros
-            setRefreshKey(prev => prev + 1); // Forzar re-fetch en NodeTable (con filtros activos)
+            setRefreshKey(prev => prev + 1); // Forzar re-fetch en NodeTable
         } catch (error) {
             console.error('Error al agregar el nodo:', error);
         }
@@ -152,13 +133,6 @@ function App() {
                                                 </div>
                                                 <div className="table-container">
                                                     <NodeTable
-                                                        nodos={nodos}
-                                                        fetchNodos={fetchNodos}
-                                                        totalRegistrosApp={totalRegistrosApp}
-                                                        pageApp={page}
-                                                        setPageApp={setPage}
-                                                        rowsPerPageApp={rowsPerPage}
-                                                        setRowsPerPageApp={setRowsPerPage}
                                                         refreshKey={refreshKey}
                                                     />
                                                 </div>

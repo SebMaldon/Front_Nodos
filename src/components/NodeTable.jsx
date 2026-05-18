@@ -3,7 +3,7 @@ import { Button, Tooltip, TextField, ListItemText, ListItem, List, Typography, T
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
-const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, rowsPerPageApp, setRowsPerPageApp, refreshKey }) => { // Recibe los nodos y la función para obtenerlos
+const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
     const { user } = useContext(AuthContext); // Obtenemos el usuario activo
     const [pageNode, setPageNode] = useState(0);
     const [rowsPerPageNode, setRowsPerPageNode] = useState(10);
@@ -75,11 +75,9 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         fetchNewNodos();
     }, [filtros]);
 
-    // Re-fetch cuando cambiamos la pagina o el limite (solo si hay filtros activos, de lo contrario App.jsx se encarga)
+    // Re-fetch cuando cambiamos la pagina o el limite
     useEffect(() => {
-        if (!filtrosEstanVacios()) {
-            fetchNewNodos();
-        }
+        fetchNewNodos();
     }, [pageNode, rowsPerPageNode]);
 
     // Re-fetch cuando se agrega un nodo nuevo desde el formulario (refreshKey viene de App.jsx)
@@ -97,15 +95,6 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
 
     // Función para hacer la nueva consulta GET y actualizar el estado
     const fetchNewNodos = async () => {
-        // Si todos los filtros están vacíos, no hacer la consulta local
-        if (filtrosEstanVacios()) {
-            // App.jsx controls fetchNodos when filters are empty
-            setFilteredNodos([]);
-            setTotalFaltantes(0);
-            setTotalAtendidos(0);
-            return;
-        }
-
         try {
             const params = { ...filtros }; // Copiar los filtros actuales
 
@@ -173,16 +162,8 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                 const response = await axios.get('http://localhost:5090/api/nodos/unidades');
                 const lista = response.data;
                 setUnidades(lista);
-
-                // Si el usuario tiene unidad asignada, pre-seleccionarla automáticamente
-                if (user?.id_unidad && user.id_unidad !== 0) {
-                    const unidadAsignada = lista.find(
-                        u => String(u.id_unidad) === String(user.id_unidad)
-                    );
-                    if (unidadAsignada) {
-                        setFiltros(prev => ({ ...prev, unidad: unidadAsignada.ref }));
-                    }
-                }
+                // La pre-selección por zona se maneja en el backend vía JWT.
+                // No pre-seleccionamos ninguna unidad aquí.
             } catch (error) {
                 console.error('Error al obtener las unidades:', error);
             }
@@ -305,6 +286,8 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         setShowObservacionesModal(null); // Cierra la modal
         setNewImageFiles([]); // Vaciar las imágenes
         setNewImageFilesAtencion([]); // Vaciar las imágenes de atención
+        // Refrescar lista para que las banderas se actualicen
+        fetchNewNodos();
     };
 
     // Función para manejar cambios en el formulario de edición
@@ -379,7 +362,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
 
             alert('Cambios guardados correctamente');
             handleCloseModal(); // Cerrar el modal
-            fetchNewNodos(); // Actualizar la lista de nodos
+            fetchNewNodos(); // Actualizar la lista filtrada y refrescar las banderas
             setNewImageFiles([]); // Limpiar el estado de las nuevas imágenes
         } catch (error) {
             console.error('Error al guardar los cambios:', error);
@@ -440,7 +423,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
 
             alert('Cambios guardados correctamente');
             handleCloseModal(); // Cerrar el modal
-            fetchNewNodos(); // Actualizar la lista de nodos
+            fetchNewNodos(); // Actualizar la lista filtrada y refrescar las banderas
             setNewImageFiles([]); // Limpiar el estado de las nuevas imágenes
         } catch (error) {
             console.error('Error al guardar los cambios:', error);
@@ -544,7 +527,7 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
         }
     };
 
-    const datosAMostrar = Object.values(filtros).some((filtro) => filtro !== '') ? filteredNodos : nodos; // Si hay filtros, mostrar los nodos filtrados, de lo contrario mostrar todos los nodos
+    const datosAMostrar = filteredNodos; // Mostrar los nodos cargados localmente
 
     // Eliminado filtrosEstanVacios duplicado
 
@@ -695,12 +678,10 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                         name="unidad"
                         value={filtros.unidad}
                         onChange={handleFiltroChange}
-                        disabled={!!(user?.id_unidad && user.id_unidad !== 0)}
+                        disabled={false}
                     >
-                        {/* Mostrar 'Todas' solo para administradores globales */}
-                        {(!user?.id_unidad || user.id_unidad === 0) && (
-                            <option value="">Todas</option>
-                        )}
+                        {/* Opción 'Todas' visible para todos (el backend ya filtra por zona) */}
+                        <option value="">Todas</option>
                         {unidades.map((unidad) => (
                             <option key={unidad.ref} value={unidad.ref}>
                                 {unidad.nombre}
@@ -765,15 +746,12 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
                 )}
             </div>
 
-            {/* Etiqueta con el total de registros (solo si los filtros no están vacíos) */}
-            {!filtrosEstanVacios() && (
-                <div style={{ marginTop: '10px', fontWeight: 'bold', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                    <label>Total de registros: {totalRegistros}</label>
-                    <label> Nodos faltantes:{totalFaltantes || ' 0'} </label>
-                    <label> Nodos atendidos:{totalAtendidos || ' 0'} </label>
-                </div>
-
-            )}
+            {/* Etiqueta con el total de registros */}
+            <div style={{ marginTop: '10px', fontWeight: 'bold', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                <label>Total de registros: {totalRegistros}</label>
+                <label> Nodos faltantes:{totalFaltantes || ' 0'} </label>
+                <label> Nodos atendidos:{totalAtendidos || ' 0'} </label>
+            </div>
 
             <div style={{ overflowX: 'auto', width: '100%' }}>
                 <table> {/* Tabla para mostrar los nodos */}
@@ -849,23 +827,14 @@ const NodeTable = ({ nodos, fetchNodos, totalRegistrosApp, pageApp, setPageApp, 
 
             <TablePagination
                 component="div"
-                count={filtrosEstanVacios() ? totalRegistrosApp : totalRegistros}
-                page={filtrosEstanVacios() ? pageApp : pageNode}
-                onPageChange={(event, newPage) => {
-                    if (filtrosEstanVacios()) setPageApp(newPage);
-                    else setPageNode(newPage);
-                }}
-                rowsPerPage={filtrosEstanVacios() ? rowsPerPageApp : rowsPerPageNode}
+                count={totalRegistros}
+                page={pageNode}
+                onPageChange={(event, newPage) => setPageNode(newPage)}
+                rowsPerPage={rowsPerPageNode}
                 rowsPerPageOptions={[5, 10, 25, 50]}
                 onRowsPerPageChange={(event) => {
-                    const newRows = parseInt(event.target.value, 10);
-                    if (filtrosEstanVacios()) {
-                        setRowsPerPageApp(newRows);
-                        setPageApp(0);
-                    } else {
-                        setRowsPerPageNode(newRows);
-                        setPageNode(0);
-                    }
+                    setRowsPerPageNode(parseInt(event.target.value, 10));
+                    setPageNode(0);
                 }}
                 labelRowsPerPage="Nodos por página"
             />

@@ -513,16 +513,9 @@ const tablaRegistros = () => {
                 const response = await axios.get('http://localhost:5090/api/nodos/unidades');
                 const lista = response.data;
                 setUnidades(lista);
-
-                // Si el usuario tiene unidad asignada, pre-seleccionarla automáticamente
-                if (user?.id_unidad && user.id_unidad !== 0) {
-                    const unidadAsignada = lista.find(
-                        u => String(u.id_unidad) === String(user.id_unidad)
-                    );
-                    if (unidadAsignada) {
-                        setFiltros(prev => ({ ...prev, unidad: unidadAsignada.ref }));
-                    }
-                }
+                // La pre-selección por zona se maneja en el backend vía JWT.
+                // No pre-seleccionamos ninguna unidad para que el usuario zonal
+                // pueda ver todas sus unidades (el backend filtra por zona automáticamente).
             } catch (error) {
                 console.error('Error al obtener las unidades:', error);
             }
@@ -577,12 +570,9 @@ const tablaRegistros = () => {
         }
     };
 
-    // Función para verificar si los filtros están vacíos
-    const filtrosEstanVacios = () => {
-        return (
-            filtros.unidad === ''
-        );
-    };
+    // filtrosEstanVacios: siempre retorna false para que fetchNodos siempre se ejecute.
+    // El backend filtra automáticamente por zona usando el token JWT.
+    const filtrosEstanVacios = () => false;
 
     // Función para verificar si un campo (array) está vacío
     const EstaVacio = (dato) => {
@@ -789,12 +779,10 @@ const tablaRegistros = () => {
                         name="unidad"
                         value={filtros.unidad}
                         onChange={handleFiltroChange}
-                        disabled={!!(user?.id_unidad && user.id_unidad !== 0)}
+                        disabled={false}
                     >
-                        {/* Mostrar 'Todas' solo para administradores globales */}
-                        {(!user?.id_unidad || user.id_unidad === 0) && (
-                            <option value="">Todas</option>
-                        )}
+                        {/* Opción 'Todas' visible para todos (el backend ya filtra por zona) */}
+                        <option value="">Todas</option>
                         {unidades.map((unidad) => (
                             <option key={unidad.ref} value={unidad.ref}>
                                 {unidad.nombre}
@@ -1028,7 +1016,7 @@ const tablaRegistros = () => {
 
                 {/* Contenedor de botones alineados a la derecha */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-                    {!filtrosEstanVacios() && (
+                    {filtros.unidad !== '' && (
                         <Tooltip title="Mostrar todas las imágenes de los MDF e IDF de la unidad">
                             <Button
                                 variant="contained"
@@ -1039,7 +1027,7 @@ const tablaRegistros = () => {
                             </Button>
                         </Tooltip>
                     )}
-                    {!filtrosEstanVacios() && (
+                    {filtros.unidad !== '' && (
                         <Tooltip title="Mostrar todas las imágenes de los nodos de la unidad">
                             <Button
                                 variant="contained"
@@ -1050,7 +1038,7 @@ const tablaRegistros = () => {
                             </Button>
                         </Tooltip>
                     )}
-                    {!filtrosEstanVacios() && (
+                    {filtros.unidad !== '' && (
                         <Tooltip title="Exportar Puerto, IP, Ubicación y Unidad a Excel">
                             <Button
                                 variant="contained"
