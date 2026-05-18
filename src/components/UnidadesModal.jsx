@@ -3,6 +3,8 @@ import axios from 'axios';
 import { TablePagination } from '@mui/material';
 import { AuthContext } from '../context/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
     const { user } = useContext(AuthContext);
 
@@ -26,7 +28,8 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
         nombre: '',
         ip: '',
         tipo_unidad: 'Médica',
-        vlan: ''
+        vlan: '',
+        zona: ''
     });
 
     const [selectedUnidad, setSelectedUnidad] = useState(null);
@@ -35,7 +38,7 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
     const fetchUnidadesDetalle = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get('http://localhost:5090/api/nodos/unidades/detalle', {
+            const response = await axios.get(`${API_URL}/api/nodos/unidades/detalle`, {
                 params: {
                     page: page + 1, // backend is 1-indexed
                     limit: limit
@@ -67,7 +70,8 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
             nombre: '',
             ip: '',
             tipo_unidad: 'Médica',
-            vlan: ''
+            vlan: '',
+            zona: ''
         });
         setIsEditing(false);
         setCurrentOldData(null);
@@ -110,7 +114,8 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
             nombre: selectedUnidad.nombre || '',
             ip: selectedUnidad.ip || '',
             tipo_unidad: selectedUnidad.tipo_unidad || 'Médica',
-            vlan: selectedUnidad.vlan || ''
+            vlan: selectedUnidad.vlan || '',
+            zona: selectedUnidad.zona !== null && selectedUnidad.zona !== undefined ? selectedUnidad.zona : ''
         });
     };
 
@@ -119,7 +124,7 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
         if (!window.confirm(`¿Estás seguro que deseas eliminar el segmento ${selectedUnidad.ref} (${selectedUnidad.ip} - VLAN: ${selectedUnidad.vlan})?`)) return;
 
         try {
-            await axios.delete(`http://localhost:5090/api/nodos/unidades`, {
+            await axios.delete(`${API_URL}/api/nodos/unidades`, {
                 params: {
                     ref: selectedUnidad.ref,
                     ip: selectedUnidad.ip,
@@ -141,29 +146,36 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
 
         // Validations
         if (!formData.ref || !formData.nombre || !formData.ip || !formData.vlan) {
-            alert('Por favor, completa todos los campos.');
+            alert('Por favor, completa todos los campos requeridos.');
+            return;
+        }
+
+        if (formData.zona !== '' && formData.zona !== null && parseInt(formData.zona, 10) < 0) {
+            alert('La zona no puede ser un número negativo.');
             return;
         }
 
         try {
             if (isEditing) {
                 // PUT Request
-                await axios.put('http://localhost:5090/api/nodos/unidades', {
+                await axios.put(`${API_URL}/api/nodos/unidades`, {
                     oldData: currentOldData,
                     newData: {
                         ...formData,
-                        vlan: parseInt(formData.vlan, 10)
+                        vlan: parseInt(formData.vlan, 10),
+                        zona: formData.zona === '' || formData.zona === null ? null : parseInt(formData.zona, 10)
                     }
                 });
                 alert('Unidad actualizada correctamente.');
             } else {
                 // POST Request
-                await axios.post('http://localhost:5090/api/nodos/unidades', {
+                await axios.post(`${API_URL}/api/nodos/unidades`, {
                     ref: formData.ref,
                     nombre: formData.nombre,
                     ip: formData.ip,
                     tipo_unidad: formData.tipo_unidad,
-                    vlan: parseInt(formData.vlan, 10)
+                    vlan: parseInt(formData.vlan, 10),
+                    zona: formData.zona === '' || formData.zona === null ? null : parseInt(formData.zona, 10)
                 });
                 alert('Unidad registrada correctamente.');
             }
@@ -212,6 +224,10 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
                                 <div>
                                     <label style={{ fontWeight: 'bold' }}>VLAN:</label>
                                     <input style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} type="number" name="vlan" value={formData.vlan} onChange={handleChange} required />
+                                </div>
+                                <div>
+                                    <label style={{ fontWeight: 'bold' }}>Zona:</label>
+                                    <input style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }} type="number" name="zona" value={formData.zona === null ? '' : formData.zona} onChange={handleChange} min="0" />
                                 </div>
                                 <div>
                                     <label style={{ fontWeight: 'bold' }}>Tipo Unidad:</label>
@@ -284,12 +300,13 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
                                         <th>IP</th>
                                         <th>Tipo</th>
                                         <th>VLAN</th>
+                                        <th>Zona</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {isLoading ? (
                                         <tr>
-                                            <td colSpan="5" style={{ padding: '20px' }}>Cargando unidades...</td>
+                                            <td colSpan="6" style={{ padding: '20px' }}>Cargando unidades...</td>
                                         </tr>
                                     ) : unidades.map((unidad, idx) => {
                                         const isSelected = selectedUnidad && selectedUnidad.ref === unidad.ref && selectedUnidad.ip === unidad.ip && selectedUnidad.vlan === unidad.vlan;
@@ -310,12 +327,13 @@ const UnidadesModal = ({ open, onClose, onUnidadesChange }) => {
                                                 <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>{unidad.ip}</td>
                                                 <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>{unidad.tipo_unidad}</td>
                                                 <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>{unidad.vlan}</td>
+                                                <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>{unidad.zona}</td>
                                             </tr>
                                         );
                                     })}
                                     {!isLoading && unidades.length === 0 && (
                                         <tr>
-                                            <td colSpan="5" style={{ padding: '20px' }}>No se encontraron registros.</td>
+                                            <td colSpan="6" style={{ padding: '20px' }}>No se encontraron registros.</td>
                                         </tr>
                                     )}
                                 </tbody>

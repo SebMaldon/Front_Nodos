@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import './Login.css';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Login = () => {
     const [usuario, setUsuario] = useState('');
     const [password, setPassword] = useState('');
@@ -18,7 +20,7 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:5090/api/auth/login', {
+            const response = await axios.post(`${API_URL}/api/auth/login`, {
                 usuario,
                 password
             });

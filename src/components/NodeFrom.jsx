@@ -5,6 +5,9 @@ import UnidadesModal from './UnidadesModal';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+
 const NodeFrom = ({ onAddNodo }) => {
     const { user } = useContext(AuthContext);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +47,7 @@ const NodeFrom = ({ onAddNodo }) => {
 
     const fetchUnidades = async () => {
         try {
-            const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
+            const response = await axios.get(`${API_URL}/api/nodos/unidades`); // Hacer una petición GET a la API
             const lista = response.data;
             setUnidades(lista);
 
@@ -71,7 +74,7 @@ const NodeFrom = ({ onAddNodo }) => {
 
         const fetchMateriales = async () => {
             try {
-                const response = await axios.get('http://localhost:5090/api/nodos/materiales'); // Hacer una petición GET a la API
+                const response = await axios.get(`${API_URL}/api/nodos/materiales`); // Hacer una petición GET a la API
 
                 setMateriales(response.data.materiales || response.data); // Almacenar los materiales en el estado
             } catch (error) {
@@ -328,7 +331,7 @@ const NodeFrom = ({ onAddNodo }) => {
 
         try {
             // Enviar los datos al backend
-            const response = await axios.post('http://localhost:5090/api/nodos', formDataToSend, {
+            const response = await axios.post(`${API_URL}/api/nodos`, formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data', // Especificar el tipo de contenido
                 },

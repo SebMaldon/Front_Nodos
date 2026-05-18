@@ -3,6 +3,9 @@ import { Button, Tooltip, TextField, ListItemText, ListItem, List, Typography, T
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+
 const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
     const { user } = useContext(AuthContext); // Obtenemos el usuario activo
     const [pageNode, setPageNode] = useState(0);
@@ -133,7 +136,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
             delete params.tipoAtencion;
 
             // Hacer la solicitud a la API con los filtros modificados y paginación
-            const response = await axios.get('http://localhost:5090/api/nodos', {
+            const response = await axios.get(`${API_URL}/api/nodos`, {
                 params: { ...params, page: pageNode + 1, limit: rowsPerPageNode },
             });
 
@@ -147,7 +150,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
     };
     const fetchUOtrosNodos = async () => {
         try {
-            const response = await axios.get('http://localhost:5090/api/nodos/unidades'); // Hacer una petición GET a la API
+            const response = await axios.get(`${API_URL}/api/nodos/unidades`); // Hacer una petición GET a la API
 
             setUnidades(response.data); // Almacenar las unidades en el estado
         } catch (error) {
@@ -159,7 +162,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
     useEffect(() => {
         const fetchUnidades = async () => {
             try {
-                const response = await axios.get('http://localhost:5090/api/nodos/unidades');
+                const response = await axios.get(`${API_URL}/api/nodos/unidades`);
                 const lista = response.data;
                 setUnidades(lista);
                 // La pre-selección por zona se maneja en el backend vía JWT.
@@ -174,7 +177,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
     // Obtener los materiales al cargar el componente
     const fetchMateriales = async () => {
         try {
-            const response = await axios.get('http://localhost:5090/api/nodos/materiales'); // Hacer una petición GET a la API
+            const response = await axios.get(`${API_URL}/api/nodos/materiales`); // Hacer una petición GET a la API
 
             setMateriales(response.data.materiales || response.data); // Almacenar los materiales en el estado
         } catch (error) {
@@ -185,7 +188,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
     // Función para abrir el modal con los detalles del nodo
     const handleDetailsClick = async (nodoData) => {
         try {
-            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`); // Llama a la API para obtener los detalles completos del nodo
+            const response = await axios.get(`${API_URL}/api/nodos/${nodoData.Id}`); // Llama a la API para obtener los detalles completos del nodo
             setSelectedNodo(response.data); // Guarda los detalles completos en el estado
         } catch (error) {
             console.error('Error al obtener los detalles del nodo:', error);
@@ -203,7 +206,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
         if (nodoData.Atencion == true) { // Si el nodo requiere atención
             try {
                 // Obtener las imágenes solventadas desde el backend
-                const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
+                const response = await axios.get(`${API_URL}/api/nodos/${nodoData.Id}`);
                 const Datos = response.data;
 
                 // Actualizar el nodo con las imágenes solventadas
@@ -214,7 +217,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
         } else { // Si el nodo no requiere atención
             try {
                 // Obtener las imágenes solventadas desde el backend
-                const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
+                const response = await axios.get(`${API_URL}/api/nodos/${nodoData.Id}`);
                 const Datos = response.data;
 
                 // Actualizar el nodo con las imágenes solventadas
@@ -230,7 +233,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
         if (nodoData.OtraAtencion == true) { // Si el nodo requiere atención
             try {
                 // Obtener las imágenes solventadas desde el backend
-                const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
+                const response = await axios.get(`${API_URL}/api/nodos/${nodoData.Id}`);
                 const Datos = response.data;
 
                 // Actualizar el nodo con las imágenes solventadas
@@ -241,7 +244,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
         } else { // Si el nodo no requiere atención
             try {
                 // Obtener las imágenes solventadas desde el backend
-                const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`);
+                const response = await axios.get(`${API_URL}/api/nodos/${nodoData.Id}`);
                 const Datos = response.data;
 
                 // Actualizar el nodo con las imágenes solventadas
@@ -351,7 +354,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
 
             // Enviar los datos al backend
             const response = await axios.put(
-                `http://localhost:5090/api/nodos/${nodoToEdit.Id}`, // URL de la API para actualizar el nodo
+                `${API_URL}/api/nodos/${nodoToEdit.Id}`, // URL de la API para actualizar el nodo
                 formDataToSend, // Datos a enviar
                 {
                     headers: { // Cabeceras de la petición
@@ -412,7 +415,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
 
             // Enviar los datos al backend
             const response = await axios.put(
-                `http://localhost:5090/api/nodos/${nodoToEdit.Id}`, // URL de la API para actualizar el nodo
+                `${API_URL}/api/nodos/${nodoToEdit.Id}`, // URL de la API para actualizar el nodo
                 formDataToSend, // Datos a enviar
                 {
                     headers: { // Cabeceras de la petición
@@ -458,7 +461,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
     // Función para eliminar el nodo
     const handleConfirmDelete = async () => {
         try {
-            await axios.delete(`http://localhost:5090/api/nodos/${nodoToDelete.Id}`); // URL de la API para eliminar el nodo
+            await axios.delete(`${API_URL}/api/nodos/${nodoToDelete.Id}`); // URL de la API para eliminar el nodo
             fetchNewNodos(); // Actualizar la lista de nodos
             alert('Nodo eliminado exitosamente');
             handleCloseModal(); // Cerrar el modal
@@ -470,13 +473,13 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
 
     // Función para mostrar la imagen en grande
     const handleImageClick = (imageUrl) => {
-        setSelectedImage('http://localhost:5090' + imageUrl); // Guarda la imagen seleccionada en el estado
+        setSelectedImage(`${API_URL}` + imageUrl); // Guarda la imagen seleccionada en el estado
     };
 
     // Función para abrir el modal de edición
     const handleEditClick = async (nodoData) => {
         try {
-            const response = await axios.get(`http://localhost:5090/api/nodos/${nodoData.Id}`); // Obtener los detalles completos del nodo
+            const response = await axios.get(`${API_URL}/api/nodos/${nodoData.Id}`); // Obtener los detalles completos del nodo
             setNodoToEdit(nodoData); // Guardar el nodo a editar en el estado
             setEditFormData({
                 ...nodoData, // Llenar el formulario con los datos actuales del nodo
@@ -495,7 +498,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
         if (!window.confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return;
 
         try {
-            await axios.delete(`http://localhost:5090/api/nodos/images/${imageId}`);
+            await axios.delete(`${API_URL}/api/nodos/images/${imageId}`);
 
             // Versión segura que verifica la existencia de selectedNodo e images
             setSelectedNodo(prevState => {
@@ -544,10 +547,10 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
     const handleOpenMaterialesModal = async () => {
         try {
             // Obtener todos los materiales disponibles
-            const materialesResponse = await axios.get('http://localhost:5090/api/nodos/materiales');
+            const materialesResponse = await axios.get(`${API_URL}/api/nodos/materiales`);
             const todosMateriales = materialesResponse.data.materiales || materialesResponse.data;
             // Obtener materiales específicos del nodo (si existen)
-            const nodoMaterialesResponse = await axios.get(`http://localhost:5090/api/nodos/${nodoToEdit.Id}`);
+            const nodoMaterialesResponse = await axios.get(`${API_URL}/api/nodos/${nodoToEdit.Id}`);
             const materialesDelNodo = nodoMaterialesResponse.data.materiales || [];
             // Combinar ambos conjuntos de datos
             const materialesCombinados = todosMateriales.map(material => {
@@ -623,7 +626,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
 
             // Enviar los cambios al backend
             const response = await axios.put(
-                `http://localhost:5090/api/nodos/materiales/${nodoToEdit.Id}`,
+                `${API_URL}/api/nodos/materiales/${nodoToEdit.Id}`,
                 { materiales: materialesAEnviar }
             );
             if (response.data.success) {
@@ -903,7 +906,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
+                                                    src={`${API_URL}` + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -990,7 +993,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
+                                                    src={`${API_URL}` + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -1075,7 +1078,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
+                                                    src={`${API_URL}` + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -1162,7 +1165,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
                                                 </div>
                                                 <img
                                                     key={index} // Clave única para cada imagen
-                                                    src={'http://localhost:5090' + image.ImagenURL}  // URL de la imagen
+                                                    src={`${API_URL}` + image.ImagenURL}  // URL de la imagen
                                                     alt={`Imagen ${index + 1}`} // Texto alternativo
                                                     width="200" // Ancho de la imagen
                                                     style={{ margin: '5px', cursor: 'pointer' }} // Estilos
@@ -1303,7 +1306,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
                                                     {formattedDate}
                                                 </div>
                                                 <img
-                                                    src={'http://localhost:5090' + image.ImagenURL}
+                                                    src={`${API_URL}` + image.ImagenURL}
                                                     alt={`Imagen ${index + 1}`}
                                                     width="200"
                                                     style={{ margin: '5px', cursor: 'pointer' }}
@@ -1566,7 +1569,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
                                                         {formattedDate}
                                                     </div>
                                                     <img
-                                                        src={'http://localhost:5090' + img.ImagenURL}
+                                                        src={`${API_URL}` + img.ImagenURL}
                                                         alt={`Imagen ${index + 1}`}
                                                         className="image-thumbnail"
                                                     />
@@ -1661,7 +1664,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
                                     try {
                                         // Enviar los datos al backend
                                         await axios.put(
-                                            `http://localhost:5090/api/nodos/updateAtencion/${nodoToEdit.Id}`,
+                                            `${API_URL}/api/nodos/updateAtencion/${nodoToEdit.Id}`,
                                             formData,
                                             {
                                                 headers: {
@@ -1748,8 +1751,8 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
 
                                     // Determinar la API a la que se enviarán los datos
                                     const endpoint = tipoAtencion === 'Atencion'
-                                        ? `http://localhost:5090/api/nodos/atencion/${selectedAtencionNodo.Id}`
-                                        : `http://localhost:5090/api/nodos/otraAtencion/${selectedOtherAtencionNodo.Id}`;
+                                        ? `${API_URL}/api/nodos/atencion/${selectedAtencionNodo.Id}`
+                                        : `${API_URL}/api/nodos/otraAtencion/${selectedOtherAtencionNodo.Id}`;
 
                                     try {
                                         // Enviar los datos al backend
@@ -1836,7 +1839,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
                                         // Enviar los datos al backend
                                         if (tipoAtencion === 'Atencion') {
                                             await axios.put(
-                                                `http://localhost:5090/api/nodos/updateAtencion/${selectedAtencionNodo.Id}`,
+                                                `${API_URL}/api/nodos/updateAtencion/${selectedAtencionNodo.Id}`,
                                                 formData,
                                                 {
                                                     headers: {
@@ -1846,7 +1849,7 @@ const NodeTable = ({ refreshKey }) => { // Recibe la key para forzar el re-fetch
                                             );
                                         } else {
                                             await axios.put(
-                                                `http://localhost:5090/api/nodos/updateAtencion/${selectedOtherAtencionNodo.Id}`,
+                                                `${API_URL}/api/nodos/updateAtencion/${selectedOtherAtencionNodo.Id}`,
                                                 formData,
                                                 {
                                                     headers: {

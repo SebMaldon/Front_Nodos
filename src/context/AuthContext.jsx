@@ -1,6 +1,8 @@
 import { createContext, useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Crear el contexto
 export const AuthContext = createContext();
 
@@ -31,7 +33,7 @@ export const AuthProvider = ({ children }) => {
     const logoutUser = async () => {
         if (user) {
             try {
-                await axios.post('http://localhost:5090/api/auth/logout', { usuario: user.usuario });
+                await axios.post(`${API_URL}/api/auth/logout`, { usuario: user.usuario });
             } catch (error) {
                 console.error("Error validando el logout", error);
             }
