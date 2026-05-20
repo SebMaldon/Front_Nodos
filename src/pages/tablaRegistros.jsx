@@ -26,8 +26,20 @@ const tablaRegistros = () => {
     const [total_IDF_MDF, setTotal_IDF_MDF] = useState([]); // Estado para almacenar la suma de los MDF e IDF de la consulta
     const [selectedImagesUnidad, setSelectedImagesUnidad] = useState(null); // Estado para almacenar las imágenes de la unidad seleccionada
     const [selectedImagesUnidadNodos, setSelectedImagesUnidadNodos] = useState(null); // Estado para almacenar las imágenes de la consulta
+    const [selectedDiagramsUnidad, setSelectedDiagramsUnidad] = useState(null); // Estado para almacenar los diagramas de la unidad seleccionada
     const [showMaterials, setShowMaterials] = useState(false); // Estado para mostrar el modal de materiales
     const [showMdfIdfForm, setShowMdfIdfForm] = useState(false);
+    const [showDiagramForm, setShowDiagramForm] = useState(false);
+    const [isEditingDiagram, setIsEditingDiagram] = useState(false);
+    const [diagramFormData, setDiagramFormData] = useState({
+        id: null,
+        unidadForm: '',
+        nombre: '',
+        file: null
+    });
+    const [diagramVersion, setDiagramVersion] = useState(Date.now());
+    const [imgDiagramPage, setImgDiagramPage] = useState(0);
+    const [imgDiagramPerPage, setImgDiagramPerPage] = useState(12);
     const [isEditingMdfIdf, setIsEditingMdfIdf] = useState(false);
     const [fetchedUnitCodes, setFetchedUnitCodes] = useState([]);
     const [fetchedUnitImages, setFetchedUnitImages] = useState([]);
@@ -652,6 +664,102 @@ const tablaRegistros = () => {
         }
     };
 
+    const handleDiagramasUnidad = async () => {
+        try {
+            const unidadParam = filtros.unidad || 'all';
+            const response = await axios.get(`${API_URL}/api/nodos/diagramas-red/${unidadParam}`, {
+                params: { page: 1, limit: 9999 }
+            });
+            const diagramas = response.data;
+            setSelectedDiagramsUnidad(diagramas);
+            setImgDiagramPage(0);
+            return diagramas;
+        } catch (error) {
+            console.error('Error al obtener los diagramas de red:', error);
+            return null;
+        }
+    };
+
+    const handleCloseDiagramForm = () => {
+        setShowDiagramForm(false);
+        setIsEditingDiagram(false);
+        setDiagramFormData({ id: null, unidadForm: '', nombre: '', file: null });
+    };
+
+    const handleFormUnidadDiagramChange = async (unidadRef) => {
+        setDiagramFormData(prev => ({ ...prev, unidadForm: unidadRef }));
+    };
+
+    const handleEditDiagramClick = async (image) => {
+        const unidadRef = image.ReferenciaUnidad || '';
+        setDiagramFormData({
+            id: image.Id,
+            unidadForm: unidadRef,
+            nombre: image.Nombre || '',
+            file: null
+        });
+        setIsEditingDiagram(true);
+        setShowDiagramForm(true);
+    };
+
+    const handleDeleteDiagram = async (id) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar este diagrama de red?')) return;
+        try {
+            await axios.delete(`${API_URL}/api/nodos/diagramas-red/${id}`);
+            alert('Diagrama eliminado con éxito');
+            setSelectedImage(null);
+            setDiagramVersion(Date.now());
+            handleDiagramasUnidad();
+        } catch (error) {
+            console.error('Error al eliminar diagrama:', error);
+            alert('Hubo un error al eliminar el diagrama');
+        }
+    };
+
+    const handleSubmitDiagram = async (e) => {
+        e.preventDefault();
+        try {
+            const formData = new FormData();
+            formData.append('Nombre', diagramFormData.nombre);
+            const referenciaUnidad = diagramFormData.unidadForm || filtros.unidad;
+            const unidadObj = unidades.find(u => String(u.ref) === String(referenciaUnidad));
+            const nombreUnidad = unidadObj ? unidadObj.nombre : referenciaUnidad;
+            formData.append('NombreUnidad', nombreUnidad);
+            formData.append('ReferenciaUnidad', referenciaUnidad);
+
+            if (isEditingDiagram) {
+                if (diagramFormData.file) {
+                    formData.append('newImage', diagramFormData.file);
+                }
+                await axios.put(`${API_URL}/api/nodos/diagramas-red/${diagramFormData.id}`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                alert('Diagrama actualizado con éxito');
+            } else {
+                if (diagramFormData.file) {
+                    formData.append('image', diagramFormData.file);
+                }
+                await axios.post(`${API_URL}/api/nodos/diagramas-red`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                alert('Diagrama agregado con éxito');
+            }
+
+            handleCloseDiagramForm();
+            setDiagramVersion(Date.now());
+            const datosActualizados = await handleDiagramasUnidad();
+            if (isEditingDiagram && datosActualizados) {
+                const imagenActualizada = datosActualizados.DiagramasRed?.find(img => img.Id === diagramFormData.id);
+                if (imagenActualizada) {
+                    setSelectedImage({ ...imagenActualizada, isDiagram: true });
+                }
+            }
+        } catch (error) {
+            console.error('Error al guardar el diagrama:', error);
+            alert('Error al guardar el diagrama');
+        }
+    };
+
     const handleEditMdfIdfClick = async (image) => {
         const unidadRef = image.ReferenciaUnidad || '';
         setMdfIdfFormData({
@@ -1030,6 +1138,15 @@ const tablaRegistros = () => {
                             </Button>
                         </Tooltip>
                     )}
+                    <Tooltip title={filtros.unidad !== '' ? "Mostrar los diagramas de red de la unidad" : "Mostrar todos los diagramas de red"}>
+                        <Button
+                            variant="contained"
+                            onClick={handleDiagramasUnidad}
+                        >
+                            <i className="fas fa-sitemap" style={{ marginRight: '5px' }}></i>
+                            <span className="hide-on-mobile">diagramas de red</span>
+                        </Button>
+                    </Tooltip>
                     {filtros.unidad !== '' && (
                         <Tooltip title="Mostrar todas las imágenes de los nodos de la unidad">
                             <Button
@@ -1568,6 +1685,77 @@ const tablaRegistros = () => {
                 );
             })()}
 
+            {selectedDiagramsUnidad && (() => {
+                const allDiagramas = selectedDiagramsUnidad.DiagramasRed || [];
+                const totalDiagramas = allDiagramas.length;
+                const diagramasPage = allDiagramas.slice(
+                    imgDiagramPage * imgDiagramPerPage,
+                    imgDiagramPage * imgDiagramPerPage + imgDiagramPerPage
+                );
+                return (
+                    <div className="modal-overlay" onClick={() => setSelectedDiagramsUnidad(null)}>
+                        <div className="modal" onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                <h3 className="image-modal-title" style={{ margin: 0 }}>Diagramas de Red:</h3>
+                                {user?.role === 'administrador' && (
+                                    <Tooltip title="Añadir Diagrama de Red">
+                                        <Button variant="contained" color="primary" onClick={() => {
+                                            setDiagramFormData({
+                                                id: null,
+                                                unidadForm: filtros.unidad,
+                                                nombre: '',
+                                                file: null
+                                            });
+                                            setShowDiagramForm(true);
+                                        }}>
+                                            <i className="fas fa-plus" style={{ marginRight: '5px' }}></i>
+                                            <span className="hide-on-mobile">Añadir Diagrama</span>
+                                        </Button>
+                                    </Tooltip>
+                                )}
+                            </div>
+
+                            {totalDiagramas > 0 ? (
+                                <>
+                                    <div className="image-grid-container">
+                                        {diagramasPage.map((image, index) => (
+                                            <div className="image-card" key={imgDiagramPage * imgDiagramPerPage + index}>
+                                                <div className="image-info">
+                                                    <div className="image-name">{image.Nombre}</div>
+                                                    <div className="image-date">{image.FechaCaptura}</div>
+                                                </div>
+                                                <img
+                                                    src={`${API_URL}` + image.ImagenURL + '?v=' + diagramVersion}
+                                                    alt={`Diagrama ${imgDiagramPage * imgDiagramPerPage + index + 1}`}
+                                                    className="thumbnail-image"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    onClick={() => setSelectedImage({ ...image, isDiagram: true })}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <TablePagination
+                                        component="div"
+                                        count={totalDiagramas}
+                                        page={imgDiagramPage}
+                                        onPageChange={(event, newPage) => setImgDiagramPage(newPage)}
+                                        rowsPerPage={imgDiagramPerPage}
+                                        onRowsPerPageChange={(event) => {
+                                            setImgDiagramPerPage(parseInt(event.target.value, 10));
+                                            setImgDiagramPage(0);
+                                        }}
+                                        rowsPerPageOptions={[6, 12, 24, 48]}
+                                        labelRowsPerPage="Diagramas por página"
+                                    />
+                                </>
+                            ) : (
+                                <p className="no-images-message">No hay diagramas de red disponibles.</p>
+                            )}
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Modal para mostrar la imagen en grande */}
             {selectedImage && (
@@ -1581,29 +1769,29 @@ const tablaRegistros = () => {
                         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                     > {/* Contenedor del modal */}
                         <img
-                            src={typeof selectedImage === 'string' ? selectedImage : `${API_URL}` + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')} // Soporta ambos formatos
+                            src={typeof selectedImage === 'string' ? selectedImage : `${API_URL}` + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : selectedImage.isDiagram ? '?v=' + diagramVersion : '')} // Soporta ambos formatos
                             alt="Imagen en grande" // Texto alternativo
                             style={{ maxWidth: '75%', maxHeight: '75%', objectFit: 'contain' }} // Estilos
                         />
                         <br />
-                        <a href={typeof selectedImage === 'string' ? selectedImage : `${API_URL}` + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')} target="_blank" rel="noopener noreferrer">
+                        <a href={typeof selectedImage === 'string' ? selectedImage : `${API_URL}` + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : selectedImage.isDiagram ? '?v=' + diagramVersion : '')} target="_blank" rel="noopener noreferrer">
                             URL: {typeof selectedImage === 'string' ? selectedImage : `${API_URL}` + selectedImage.ImagenURL + (selectedImage.isMdfIdf ? '?v=' + imgVersion : '')}
                         </a>
 
-                        {/* Botones adicionales solo si es imagen de MDF/IDF */}
-                        {typeof selectedImage === 'object' && selectedImage.isMdfIdf && user?.role === 'administrador' && (
+                        {/* Botones adicionales solo si es imagen de MDF/IDF o Diagrama de Red */}
+                        {typeof selectedImage === 'object' && (selectedImage.isMdfIdf || selectedImage.isDiagram) && user?.role === 'administrador' && (
                             <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                                 <Button
                                     variant="contained"
                                     color="warning"
-                                    onClick={() => handleEditMdfIdfClick(selectedImage)}
+                                    onClick={() => selectedImage.isMdfIdf ? handleEditMdfIdfClick(selectedImage) : handleEditDiagramClick(selectedImage)}
                                 >
                                     <i className="fas fa-edit" style={{ marginRight: '5px' }}></i> Editar
                                 </Button>
                                 <Button
                                     variant="contained"
                                     color="error"
-                                    onClick={() => handleDeleteMdfIdf(selectedImage.Id)}
+                                    onClick={() => selectedImage.isMdfIdf ? handleDeleteMdfIdf(selectedImage.Id) : handleDeleteDiagram(selectedImage.Id)}
                                 >
                                     <i className="fas fa-trash" style={{ marginRight: '5px' }}></i> Eliminar
                                 </Button>
@@ -1803,6 +1991,65 @@ const tablaRegistros = () => {
                             <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                                 <Button type="submit" variant="contained" color="success">Guardar</Button>
                                 <Button type="button" variant="outlined" onClick={handleCloseMdfIdfForm}>Cancelar</Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showDiagramForm && (
+                <div className="modal-overlay" onClick={handleCloseDiagramForm}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <h3>{isEditingDiagram ? 'Editar Diagrama de Red' : 'Añadir Diagrama de Red'}</h3>
+                        <form onSubmit={handleSubmitDiagram} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            {!isEditingDiagram && (
+                                <label>
+                                    Unidad:
+                                    <select
+                                        value={diagramFormData.unidadForm}
+                                        onChange={(e) => handleFormUnidadDiagramChange(e.target.value)}
+                                        style={{ marginLeft: '10px', padding: '5px' }}
+                                        required
+                                    >
+                                        <option value="">Seleccione una unidad</option>
+                                        {unidades.map(u => (
+                                            <option key={u.ref} value={u.ref}>{u.nombre}</option>
+                                        ))}
+                                    </select>
+                                </label>
+                            )}
+
+                            {isEditingDiagram && (
+                                <div style={{ fontSize: '0.9em', color: 'gray' }}>
+                                    Unidad: {unidades.find(u => String(u.ref) === String(diagramFormData.unidadForm))?.nombre || diagramFormData.unidadForm}
+                                </div>
+                            )}
+
+                            <label>
+                                Nombre:
+                                <input
+                                    type="text"
+                                    value={diagramFormData.nombre}
+                                    onChange={(e) => setDiagramFormData({ ...diagramFormData, nombre: e.target.value })}
+                                    style={{ marginLeft: '10px', padding: '5px', width: '200px' }}
+                                    required
+                                />
+                            </label>
+
+                            <label>
+                                Imagen {isEditingDiagram ? '(opcional para reemplazar)' : '*'}:
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setDiagramFormData({ ...diagramFormData, file: e.target.files[0] })}
+                                    style={{ marginLeft: '10px' }}
+                                    required={!isEditingDiagram}
+                                />
+                            </label>
+
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                                <Button type="submit" variant="contained" color="success">Guardar</Button>
+                                <Button type="button" variant="outlined" onClick={handleCloseDiagramForm}>Cancelar</Button>
                             </div>
                         </form>
                     </div>
